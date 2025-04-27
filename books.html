@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Books - BookVerse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Georgia&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        h1, h2, h3, h4, h5, h6, .font-serif {
+            font-family: 'Georgia', serif;
+        }
+        .cta-button {
+            background-color: #FF5733;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+        .cta-button:hover {
+            background-color: #E04C2D;
+        }
+        .progress-bar-fill {
+            background-color: #FF5733;
+            transition: width 0.5s ease-out;
+        }
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .fade-in-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .book-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .tab-button.active {
+            border-bottom: 2px solid #FF5733;
+            color: #FF5733;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <!-- Header Section -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-3 max-w-6xl flex justify-between items-center">
+            <a href="index.html" class="flex items-center">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" class="mr-2">
+                    <!-- Book base -->
+                    <path d="M5 30C5 27.2386 7.23858 25 10 25H30C32.7614 25 35 27.2386 35 30V32C35 33.1046 34.1046 34 33 34H7C5.89543 34 5 33.1046 5 32V30Z" fill="#FF5733"/>
+                    <!-- Book pages -->
+                    <path d="M8 25V10C8 8.89543 8.89543 8 10 8H30C31.1046 8 32 8.89543 32 10V25" fill="white" stroke="#333333" stroke-width="1.5"/>
+                    <!-- Tree trunk -->
+                    <path d="M20 8V20" stroke="#5D4037" stroke-width="2" stroke-linecap="round"/>
+                    <!-- Tree branches -->
+                    <path d="M15 15L20 10L25 15" stroke="#5D4037" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M13 19L20 12L27 19" stroke="#5D4037" stroke-width="1.5" stroke-linecap="round"/>
+                    <!-- Tree leaves -->
+                    <circle cx="20" cy="7" r="3" fill="#4CAF50"/>
+                    <circle cx="16" cy="10" r="2" fill="#4CAF50"/>
+                    <circle cx="24" cy="10" r="2" fill="#4CAF50"/>
+                    <circle cx="14" cy="14" r="2" fill="#4CAF50"/>
+                    <circle cx="26" cy="14" r="2" fill="#4CAF50"/>
+                    <circle cx="12" cy="18" r="2" fill="#4CAF50"/>
+                    <circle cx="28" cy="18" r="2" fill="#4CAF50"/>
+                </svg>
+                <span class="text-xl font-bold font-serif text-[#333]">BookVerse</span>
+            </a>
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="index.html" class="text-gray-600 hover:text-[#FF5733] hover:underline">Home</a>
+                <a href="books.html" class="text-gray-600 hover:text-[#FF5733] hover:underline font-medium text-[#FF5733]">Books</a>
+                <a href="index.html#how-it-works" class="text-gray-600 hover:text-[#FF5733] hover:underline">How It Works</a>
+                <a href="index.html#contact" class="text-gray-600 hover:text-[#FF5733] hover:underline">Contact</a>
+                
+                <!-- User Login Button -->
+                <a href="login.html" class="loginBtn text-gray-600 hover:text-[#FF5733] hover:underline">Login</a>
+                
+                <!-- User Profile Dropdown -->
+                <div class="hidden relative" id="userProfileDropdown">
+                    <button id="profileDropdownButton" class="flex items-center space-x-2 focus:outline-none">
+                        <div class="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
+                            <img id="headerAvatar" src="" alt="User Avatar" class="w-full h-full object-cover hidden">
+                            <span id="headerInitials" class="text-sm font-medium text-gray-600">UN</span>
+                        </div>
+                        <span id="headerUserName" class="text-gray-700">User Name</span>
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    
+                    <div id="profileDropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md py-1 z-50">
+                        <a href="profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+                        <a href="#" class="signOutBtn block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign Out</a>
+                    </div>
+                </div>
+                
+                <a href="publish.html" class="cta-button px-8 py-3 rounded-full font-semibold text-lg shadow-lg inline-block">Start Publishing</a>
+            </div>
+            <!-- Mobile Menu Button -->
+            <div class="md:hidden flex items-center">
+                <button id="mobile-menu-button" class="text-gray-600 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+        </nav>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="md:hidden hidden bg-white py-4 px-6 absolute top-full left-0 w-full shadow-lg">
+            <a href="index.html" class="block py-2 text-gray-600 hover:text-[#FF5733]">Home</a>
+            <a href="books.html" class="block py-2 text-gray-600 hover:text-[#FF5733] font-medium text-[#FF5733]">Books</a>
+            <a href="index.html#how-it-works" class="block py-2 text-gray-600 hover:text-[#FF5733]">How It Works</a>
+            <a href="index.html#contact" class="block py-2 text-gray-600 hover:text-[#FF5733]">Contact</a>
+            <a href="login.html" class="loginBtn block py-2 text-gray-600 hover:text-[#FF5733]">Login</a>
+            
+            <!-- Mobile User Profile -->
+            <div id="mobileUserProfile" class="hidden py-2">
+                <div class="flex items-center px-2 py-2 text-gray-600 hover:text-[#FF5733]">
+                    <div class="w-6 h-6 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center mr-2">
+                        <img id="mobileAvatar" src="" alt="User Avatar" class="w-full h-full object-cover hidden">
+                        <span id="mobileInitials" class="text-xs font-medium text-gray-600">UN</span>
+                    </div>
+                    <span id="mobileUserName">User Name</span>
+                </div>
+                <a href="profile.html" class="block py-2 px-8 text-gray-600 hover:text-[#FF5733]">View Profile</a>
+                <button class="signOutBtn block py-2 px-8 text-gray-600 hover:text-[#FF5733] w-full text-left">Sign Out</button>
+            </div>
+            
+            <a href="publish.html" class="block mt-4 cta-button text-center px-6 py-2 rounded-full font-semibold text-sm shadow-md">Start Publishing</a>
+        </div>
+    </header>
+
+    <main>
+        <!-- Page Header -->
+        <section class="bg-white py-12 border-b border-gray-200">
+            <div class="container mx-auto px-6 max-w-6xl">
+                <h1 class="text-3xl md:text-4xl font-bold font-serif text-[#333] text-center">Discover Books</h1>
+                <p class="text-gray-600 text-center mt-2 max-w-2xl mx-auto">Browse ongoing campaigns and published books ready for reorder.</p>
+            </div>
+        </section>
+
+        <!-- Tab Navigation -->
+        <section class="bg-white py-6 border-b border-gray-200">
+            <div class="container mx-auto px-6 max-w-6xl">
+                <div class="flex justify-center">
+                    <div class="inline-flex space-x-4 md:space-x-10">
+                        <button class="tab-button px-4 py-2 text-gray-700 font-medium text-lg active" data-tab="ongoing">
+                            Ongoing Campaigns
+                        </button>
+                        <button class="tab-button px-4 py-2 text-gray-700 font-medium text-lg" data-tab="reorder">
+                            Available for Reorder
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filter & Search Section -->
+        <section class="bg-gray-50 py-6">
+            <div class="container mx-auto px-6 max-w-6xl">
+                <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                    <!-- Search Bar -->
+                    <div class="w-full md:w-auto">
+                        <div class="relative">
+                            <input type="text" id="search-input" placeholder="Search by title or author..." class="w-full md:w-80 pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[#FF5733] focus:border-transparent">
+                            <div class="absolute left-3 top-2.5">
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Filters -->
+                    <div class="flex space-x-3">
+                        <select id="genre-filter" class="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF5733] focus:border-transparent bg-white">
+                            <option value="">All Genres</option>
+                            <option value="Fiction">Fiction</option>
+                            <option value="Non-fiction">Non-fiction</option>
+                            <option value="Mystery">Mystery</option>
+                            <option value="Science Fiction">Science Fiction</option>
+                            <option value="Fantasy">Fantasy</option>
+                            <option value="Romance">Romance</option>
+                            <option value="Poetry">Poetry</option>
+                            <option value="Children">Children's Books</option>
+                        </select>
+                        
+                        <select id="sort-option" class="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF5733] focus:border-transparent bg-white">
+                            <option value="newest">Newest First</option>
+                            <option value="popular">Most Popular</option>
+                            <option value="ending-soon">Ending Soon</option>
+                            <option value="price-low">Price: Low to High</option>
+                            <option value="price-high">Price: High to Low</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Books Grid - Ongoing Campaigns -->
+        <section id="ongoing-tab" class="tab-content py-10">
+            <div class="container mx-auto px-6 max-w-6xl">
+                <div id="ongoing-books" class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <!-- Book cards will be inserted here by JavaScript -->
+                    <div class="loading-spinner flex justify-center items-center col-span-full py-10">
+                        <svg class="animate-spin h-10 w-10 text-[#FF5733]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </div>
+                </div>
+                
+                <!-- Empty State -->
+                <div id="ongoing-empty" class="hidden text-center py-10">
+                    <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
+                    <h3 class="mt-4 text-lg font-medium text-gray-700">No campaigns found</h3>
+                    <p class="mt-1 text-sm text-gray-500">Try changing your search or filter options.</p>
+                    <a href="create-campaign.html" class="mt-6 inline-block cta-button px-6 py-2 rounded-full font-semibold text-sm shadow-md">Start Your Own Campaign</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Books Grid - Available for Reorder -->
+        <section id="reorder-tab" class="tab-content py-10 hidden">
+            <div class="container mx-auto px-6 max-w-6xl">
+                <div id="reorder-books" class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <!-- Book cards will be inserted here by JavaScript -->
+                    <div class="loading-spinner flex justify-center items-center col-span-full py-10">
+                        <svg class="animate-spin h-10 w-10 text-[#FF5733]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </div>
+                </div>
+                
+                <!-- Empty State -->
+                <div id="reorder-empty" class="hidden text-center py-10">
+                    <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
+                    <h3 class="mt-4 text-lg font-medium text-gray-700">No books available for reorder</h3>
+                    <p class="mt-1 text-sm text-gray-500">Check back soon for new books available to purchase.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-[#333] text-gray-300 py-12">
+        <div class="container mx-auto px-6 max-w-6xl">
+            <div class="grid md:grid-cols-3 gap-8 text-center md:text-left">
+                <!-- Left: Logo & Description -->
+                <div>
+                    <a href="#" class="inline-flex items-center mb-2">
+                        <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" class="mr-2">
+                            <!-- Book base -->
+                            <path d="M5 30C5 27.2386 7.23858 25 10 25H30C32.7614 25 35 27.2386 35 30V32C35 33.1046 34.1046 34 33 34H7C5.89543 34 5 33.1046 5 32V30Z" fill="#FF5733"/>
+                            <!-- Book pages -->
+                            <path d="M8 25V10C8 8.89543 8.89543 8 10 8H30C31.1046 8 32 8.89543 32 10V25" fill="white" stroke="#FFFFFF" stroke-width="1.5"/>
+                            <!-- Tree trunk -->
+                            <path d="M20 8V20" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+                            <!-- Tree branches -->
+                            <path d="M15 15L20 10L25 15" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round"/>
+                            <path d="M13 19L20 12L27 19" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round"/>
+                            <!-- Tree leaves -->
+                            <circle cx="20" cy="7" r="3" fill="#6FCF7D"/>
+                            <circle cx="16" cy="10" r="2" fill="#6FCF7D"/>
+                            <circle cx="24" cy="10" r="2" fill="#6FCF7D"/>
+                            <circle cx="14" cy="14" r="2" fill="#6FCF7D"/>
+                            <circle cx="26" cy="14" r="2" fill="#6FCF7D"/>
+                            <circle cx="12" cy="18" r="2" fill="#6FCF7D"/>
+                            <circle cx="28" cy="18" r="2" fill="#6FCF7D"/>
+                        </svg>
+                        <span class="text-2xl font-bold font-serif text-white">BookVerse</span>
+                    </a>
+                    <p class="text-sm text-gray-400">Crowdfund books, support authors, read new stories.</p>
+                </div>
+                <!-- Center: Links -->
+                <div>
+                    <h4 class="font-semibold text-white mb-3">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover:text-white hover:underline text-sm">About Us</a></li>
+                        <li><a href="#" class="hover:text-white hover:underline text-sm">FAQ</a></li>
+                        <li><a href="#" class="hover:text-white hover:underline text-sm">Terms of Service</a></li>
+                        <li><a href="#" class="hover:text-white hover:underline text-sm">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white hover:underline text-sm">Contact</a></li>
+                    </ul>
+                </div>
+                <!-- Right: Social Media -->
+                <div>
+                    <h4 class="font-semibold text-white mb-3">Follow Us</h4>
+                    <div class="flex justify-center md:justify-start space-x-4">
+                        <a href="#" aria-label="Twitter" class="text-gray-400 hover:text-white">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"></path>
+                            </svg>
+                        </a>
+                        <a href="#" aria-label="Instagram" class="text-gray-400 hover:text-white">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.98-6.98.059-1.28.072-1.689.072-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8 pt-8 border-t border-gray-700 text-center text-sm text-gray-500">
+                © 2025 BookVerse. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Initialize Supabase client
+        const supabaseUrl = 'https://qcnqdwylsxgpnoogcuhm.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjbnFkd3lsc3hncG5vb2djdWhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUyNDY4NTEsImV4cCI6MjA2MDgyMjg1MX0.4z2ZSBfJLSSReG5KLZXrEUVN8n2HU1EuSvsy98sPEgY';
+        
+        // Create Supabase client
+        const { createClient } = supabase;
+        const client = createClient(supabaseUrl, supabaseAnonKey);
+        
+        // DOM Elements
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const searchInput = document.getElementById('search-input');
+        const genreFilter = document.getElementById('genre-filter');
+        const sortOption = document.getElementById('sort-option');
+        const ongoingBooksContainer = document.getElementById('ongoing-books');
+        const reorderBooksContainer = document.getElementById('reorder-books');
+        const ongoingEmptyState = document.getElementById('ongoing-empty');
+        const reorderEmptyState = document.getElementById('reorder-empty');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const loginButtons = document.querySelectorAll('.loginBtn');
+        const signOutButtons = document.querySelectorAll('.signOutBtn');
+        const userProfileDropdown = document.getElementById('userProfileDropdown');
+        const mobileUserProfile = document.getElementById('mobileUserProfile');
+        const profileDropdownButton = document.getElementById('profileDropdownButton');
+        const profileDropdownMenu = document.getElementById('profileDropdownMenu');
+
+        // State
+        let currentTab = 'ongoing';
+        let searchQuery = '';
+        let currentGenre = '';
+        let currentSort = 'newest';
+        let ongoingBooks = [];
+        let reorderBooks = [];
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            // Tab functionality
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tab = button.dataset.tab;
+                    switchTab(tab);
+                });
+            });
+
+            // Search input
+            searchInput.addEventListener('input', debounce(() => {
+                searchQuery = searchInput.value.toLowerCase().trim();
+                applyFilters();
+            }, 300));
+
+            // Genre filter
+            genreFilter.addEventListener('change', () => {
+                currentGenre = genreFilter.value;
+                applyFilters();
+            });
+
+            // Sort option
+            sortOption.addEventListener('change', () => {
+                currentSort = sortOption.value;
+                applyFilters();
+            });
+
+            // Mobile menu toggle
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            // Profile dropdown toggle
+            profileDropdownButton?.addEventListener('click', () => {
+                profileDropdownMenu.classList.toggle('hidden');
+            });
+
+            // Close dropdown when clicking outside
+            window.addEventListener('click', (event) => {
+                if (profileDropdownButton && !profileDropdownButton.contains(event.target)) {
+                    profileDropdownMenu.classList.add('hidden');
+                }
+            });
+
+            // Handle sign out
+            signOutButtons.forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    try {
+                        const { error } = await client.auth.signOut();
+                        if (error) throw error;
+                        
+                        showLoginButtons();
+                        console.log('User signed out successfully');
+                    } catch (error) {
+                        console.error('Sign out error:', error);
+                    }
+                });
+            });
+
+            // Check authentication
+            checkAuth();
+
+            // Fetch books from Supabase
+            fetchOngoingCampaigns();
+            fetchBooksForReorder();
+        });
+
+        // Switch between tabs
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Update tab buttons
+            tabButtons.forEach(button => {
+                if (button.dataset.tab === tab) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            });
+            
+            // Update tab content
+            tabContents.forEach(content => {
+                if (content.id === `${tab}-tab`) {
+                    content.classList.remove('hidden');
+                } else {
+                    content.classList.add('hidden');
+                }
+            });
+        }
+
+        // Fetch ongoing campaigns from Supabase with retry logic
+        async function fetchOngoingCampaigns(retryCount = 3, delay = 1000) {
+            for (let i = 0; i < retryCount; i++) {
+                try {
+                    console.log(`Fetching ongoing campaigns... Attempt ${i + 1}`);
+                    
+                    // Show loading state
+                    ongoingBooksContainer.innerHTML = `
+                        <div class="loading-spinner flex justify-center items-center col-span-full py-10">
+                            <svg class="animate-spin h-10 w-10 text-[#FF5733]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
+                    `;
+
+                    const { data, error } = await client
+                        .from('campaigns')
+                        .select(`
+                            id,
+                            title,
+                            description,
+                            genre,
+                            page_count,
+                            binding_type,
+                            cover_image_url,
+                            price,
+                            min_purchases,
+                            duration_days,
+                            status,
+                            created_at,
+                            author_name,
+                            is_direct_publish
+                        `)
+                        .eq('status', 'active');
+                    
+                    if (error) {
+                        throw error;
+                    }
+                    
+                    if (!data) {
+                        throw new Error('No data received from server');
+                    }
+                    
+                    console.log('Successfully fetched ongoing campaigns:', data.length);
+                    ongoingBooks = data;
+                    renderBooks(ongoingBooks, ongoingBooksContainer, ongoingEmptyState);
+                    return;
+                    
+                } catch (error) {
+                    console.error(`Attempt ${i + 1} failed:`, error);
+                    
+                    if (i === retryCount - 1) {
+                        // Last attempt failed
+                        console.error('All retry attempts failed');
+                        showError(ongoingBooksContainer, 'Failed to load campaigns. Please try again later.');
+                        return;
+                    }
+                    
+                    // Wait before retrying
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    // Increase delay for next attempt
+                    delay *= 2;
+                }
+            }
+        }
+
+        // Fetch books available for reorder from Supabase with retry logic
+        async function fetchBooksForReorder(retryCount = 3, delay = 1000) {
+            for (let i = 0; i < retryCount; i++) {
+                try {
+                    console.log(`Fetching reorder books... Attempt ${i + 1}`);
+                    
+                    // Show loading state
+                    reorderBooksContainer.innerHTML = `
+                        <div class="loading-spinner flex justify-center items-center col-span-full py-10">
+                            <svg class="animate-spin h-10 w-10 text-[#FF5733]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
+                    `;
+
+                    const { data, error } = await client
+                        .from('campaigns')
+                        .select(`
+                            id,
+                            title,
+                            description,
+                            genre,
+                            page_count,
+                            binding_type,
+                            cover_image_url,
+                            price,
+                            min_purchases,
+                            status,
+                            author_name,
+                            reorder_available,
+                            is_direct_publish
+                        `)
+                        .eq('status', 'completed')
+                        .eq('reorder_available', true);
+                    
+                    if (error) {
+                        throw error;
+                    }
+                    
+                    if (!data) {
+                        throw new Error('No data received from server');
+                    }
+                    
+                    console.log('Successfully fetched reorder books:', data.length);
+                    reorderBooks = data;
+                    renderBooks(reorderBooks, reorderBooksContainer, reorderEmptyState);
+                    return;
+                    
+                } catch (error) {
+                    console.error(`Attempt ${i + 1} failed:`, error);
+                    
+                    if (i === retryCount - 1) {
+                        // Last attempt failed
+                        console.error('All retry attempts failed');
+                        showError(reorderBooksContainer, 'Failed to load books. Please try again later.');
+                        return;
+                    }
+                    
+                    // Wait before retrying
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    // Increase delay for next attempt
+                    delay *= 2;
+                }
+            }
+        }
+
+        // Apply filters and search to the books
+        function applyFilters() {
+            // Filter ongoing books
+            let filteredOngoing = filterBooks(ongoingBooks);
+            renderBooks(filteredOngoing, ongoingBooksContainer, ongoingEmptyState);
+            
+            // Filter reorder books
+            let filteredReorder = filterBooks(reorderBooks);
+            renderBooks(filteredReorder, reorderBooksContainer, reorderEmptyState);
+        }
+
+        // Filter books based on search query, genre, and sort
+        function filterBooks(books) {
+            // Filter by search query
+            let filtered = books;
+            if (searchQuery) {
+                filtered = filtered.filter(book => 
+                    book.title?.toLowerCase().includes(searchQuery) || 
+                    book.author_name?.toLowerCase().includes(searchQuery) ||
+                    book.description?.toLowerCase().includes(searchQuery)
+                );
+            }
+            
+            // Filter by genre
+            if (currentGenre) {
+                filtered = filtered.filter(book => book.genre === currentGenre);
+            }
+            
+            // Apply sorting
+            if (currentSort === 'newest') {
+                filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            } else if (currentSort === 'popular') {
+                filtered.sort((a, b) => (b.backers_count || 0) - (a.backers_count || 0));
+            } else if (currentSort === 'ending-soon') {
+                filtered.sort((a, b) => new Date(a.end_date) - new Date(b.end_date));
+            } else if (currentSort === 'price-low') {
+                filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
+            } else if (currentSort === 'price-high') {
+                filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
+            }
+            
+            return filtered;
+        }
+
+        // Render books to the container
+        function renderBooks(books, container, emptyState) {
+            // Remove loading spinner
+            const spinner = container.querySelector('.loading-spinner');
+            if (spinner) {
+                spinner.remove();
+            }
+            
+            // Clear current books
+            const existingBooks = container.querySelectorAll('.book-card');
+            existingBooks.forEach(book => book.remove());
+            
+            // Show empty state if no books
+            if (!books.length) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            // Hide empty state if books exist
+            emptyState.classList.add('hidden');
+            
+            // Render each book
+            books.forEach(book => {
+                const bookCard = createBookCard(book);
+                container.appendChild(bookCard);
+            });
+        }
+
+        // Create a book card element
+        function createBookCard(book) {
+            console.log('Creating card for book:', book); // Debug log
+            const card = document.createElement('div');
+            card.className = 'book-card bg-white rounded-lg shadow-md overflow-hidden transform hover:scale-105 transition-transform duration-300';
+            
+            try {
+                const isDirectPublish = book.is_direct_publish;
+                const isOngoing = book.status === 'active';
+                
+                // Use the correct cover image URL
+                const coverImage = book.cover_image_url || 'https://via.placeholder.com/300x400/f5f5f5/333333?text=Book+Cover';
+                
+                // Format price - ensure it's a valid number
+                let price = 20; // default price
+                try {
+                    if (book.price) {
+                        price = parseFloat(book.price);
+                        if (isNaN(price)) price = 20;
+                    }
+                } catch (e) {
+                    console.warn('Error parsing price:', e);
+                }
+                const formattedPrice = price.toFixed(2);
+
+                // Status badge and progress section based on publishing type
+                const statusBadge = isDirectPublish ? 
+                    `<span class="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold">Available Now</span>` :
+                    `<span class="absolute top-4 right-4 bg-[#FF5733] text-white px-3 py-1 rounded-full text-xs font-semibold">Crowdfunding</span>`;
+
+                // Progress section for crowdfunding vs direct publishing
+                const progressSection = isDirectPublish ?
+                    `<div class="flex justify-between items-center mb-3">
+                        <span class="text-sm text-gray-600">Print on demand</span>
+                        <span class="text-sm text-green-500 font-semibold">Ships in 3-5 days</span>
+                     </div>` :
+                    `<div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+                            <div class="progress-bar-fill h-2.5 rounded-full" style="width: ${((book.current_purchases || 0) / book.min_purchases * 100)}%"></div>
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-500 mb-3">
+                            <span>${book.current_purchases || 0}/${book.min_purchases} pre-purchases</span>
+                            <span>${getDaysRemaining(new Date(book.created_at).setDate(new Date(book.created_at).getDate() + book.duration_days))} days left</span>
+                        </div>
+                     </div>`;
+
+                card.innerHTML = `
+                    <div class="relative">
+                        <img src="${coverImage}" alt="${book.title || 'Book Cover'}" class="w-full h-48 object-cover">
+                        ${statusBadge}
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-semibold text-lg mb-1 text-[#333]">${book.title || 'Untitled Book'}</h3>
+                        <p class="text-sm text-gray-600 mb-2">by ${book.author_name || 'Unknown Author'}</p>
+                        <p class="text-sm text-gray-700 mb-3">${book.description ? book.description.substring(0, 80) + '...' : 'No description available.'}</p>
+                        ${progressSection}
+                        <div class="text-xs text-gray-500 mb-3">
+                            <span class="inline-block bg-gray-100 rounded px-2 py-1 mr-2">${book.binding_type || 'Paperback'}</span>
+                            <span class="inline-block bg-gray-100 rounded px-2 py-1">${book.page_count || '0'} pages</span>
+                        </div>
+                        <a href="campaign.html?id=${book.id}" class="cta-button block text-center w-full py-2 rounded-md font-semibold text-sm">
+                            ${isDirectPublish ? `Buy Now for $${formattedPrice}` : `Back this Book for $${formattedPrice}`}
+                        </a>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error creating book card:', error, book);
+                card.innerHTML = `
+                    <div class="p-4">
+                        <p class="text-red-500">Error displaying book</p>
+                    </div>
+                `;
+            }
+            
+            return card;
+        }
+
+        // Add helper function for calculating days remaining
+        function getDaysRemaining(endDate) {
+            const end = new Date(endDate);
+            const now = new Date();
+            const diff = end - now;
+            return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+        }
+
+        // Show error message in container with retry button
+        function showError(container, message) {
+            container.innerHTML = `
+                <div class="col-span-full text-center py-10">
+                    <svg class="mx-auto h-12 w-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <h3 class="mt-4 text-lg font-medium text-gray-700">${message}</h3>
+                    <button onclick="retryLoad()" class="mt-4 px-6 py-2 bg-[#FF5733] text-white rounded-full hover:bg-[#E04C2D] transition-colors">
+                        Try Again
+                    </button>
+                </div>
+            `;
+        }
+
+        // Retry loading function
+        async function retryLoad() {
+            console.log('Retrying data load...');
+            await Promise.all([
+                fetchOngoingCampaigns(),
+                fetchBooksForReorder()
+            ]);
+        }
+
+        // Check authentication state
+        async function checkAuth() {
+            try {
+                const { data, error } = await client.auth.getUser();
+                if (error || !data.user) {
+                    // User is not logged in
+                    showLoginButtons();
+                } else {
+                    // User is logged in
+                    showProfileButtons(data.user);
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                showLoginButtons();
+            }
+        }
+
+        // Show login buttons, hide profile
+        function showLoginButtons() {
+            loginButtons.forEach(btn => btn.classList.remove('hidden'));
+            userProfileDropdown.classList.add('hidden');
+            mobileUserProfile.classList.add('hidden');
+        }
+
+        // Show profile, hide login buttons
+        function showProfileButtons(user) {
+            loginButtons.forEach(btn => btn.classList.add('hidden'));
+            userProfileDropdown.classList.remove('hidden');
+            mobileUserProfile.classList.remove('hidden');
+            
+            // Set user name
+            const displayName = user.user_metadata?.full_name || user.email || 'User';
+            document.getElementById('headerUserName').textContent = displayName;
+            document.getElementById('mobileUserName').textContent = displayName;
+            
+            // Get user initials for avatar placeholder
+            const initials = getInitials(displayName);
+            document.getElementById('headerInitials').textContent = initials;
+            document.getElementById('mobileInitials').textContent = initials;
+            
+            // Check if avatar URL is valid
+            const avatarUrl = user.user_metadata?.avatar_url;
+            const isValidUrl = avatarUrl && 
+                               avatarUrl.trim() !== '' && 
+                               !avatarUrl.startsWith('blob:');
+            
+            const headerAvatar = document.getElementById('headerAvatar');
+            const mobileAvatar = document.getElementById('mobileAvatar');
+            const headerInitials = document.getElementById('headerInitials');
+            const mobileInitials = document.getElementById('mobileInitials');
+            
+            if (isValidUrl) {
+                // Update desktop header avatar
+                headerAvatar.src = avatarUrl;
+                headerAvatar.classList.remove('hidden');
+                headerInitials.classList.add('hidden');
+                
+                // Update mobile avatar
+                mobileAvatar.src = avatarUrl;
+                mobileAvatar.classList.remove('hidden');
+                mobileInitials.classList.add('hidden');
+            } else {
+                // Show initials for desktop header
+                headerAvatar.classList.add('hidden');
+                headerInitials.classList.remove('hidden');
+                
+                // Show initials for mobile
+                mobileAvatar.classList.add('hidden');
+                mobileInitials.classList.remove('hidden');
+            }
+        }
+
+        // Generate initials from name
+        function getInitials(name) {
+            if (!name) return 'UN';
+            
+            // Split the name by spaces, dashes, dots, etc.
+            const parts = name.split(/[\s.-_@]+/);
+            
+            if (parts.length >= 2) {
+                // Get first letter of first and last parts
+                return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+            } else if (parts.length === 1 && parts[0].length >= 2) {
+                // Get first two letters of single name/email
+                return parts[0].substring(0, 2).toUpperCase();
+            } else if (parts.length === 1) {
+                // Get first letter of single name/email
+                return parts[0][0].toUpperCase() + 'N';
+            } else {
+                return 'UN';
+            }
+        }
+
+        // Debounce function for search input
+        function debounce(func, delay) {
+            let timeout;
+            return function() {
+                const context = this;
+                const args = arguments;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), delay);
+            };
+        }
+
+        // Intersection Observer for Fade-in Animations
+        const sectionsToFade = document.querySelectorAll('.fade-in-section');
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const observerCallback = (entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        };
+
+        const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+        sectionsToFade.forEach(section => {
+            observer.observe(section);
+        });
+    </script>
+</body>
+</html> 

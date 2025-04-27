@@ -1,0 +1,25 @@
+{
+  "name": "bookverse",
+  "version": "1.0.0",
+  "description": "A crowdfunding platform for books",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npx tailwindcss -i ./src/input.css -o ./dist/output.css --watch",
+    "build": "npx tailwindcss -i ./src/input.css -o ./dist/output.css",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "books",
+    "crowdfunding",
+    "publishing"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.7",
+    "pdf-lib": "^1.17.1"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.1"
+  }
+} 

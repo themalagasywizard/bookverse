@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Start Publishing - BookVerse</title>
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Initialize PDF.js worker with error handling
+        try {
+            window.pdfjsLib = window.pdfjsLib || {};
+            window.pdfjsLib.GlobalWorkerOptions = window.pdfjsLib.GlobalWorkerOptions || {};
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        } catch (error) {
+            console.error('Failed to initialize PDF.js worker:', error);
+        }
+    </script>
+    <script src="js/bookPreview.js"></script>
+    <script src="js/formatSettings.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Georgia&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        h1, h2, h3, h4, h5, h6, .font-serif {
+            font-family: 'Georgia', serif;
+        }
+        .cta-button {
+            background-color: #FF5733;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+        .cta-button:hover {
+            background-color: #E04C2D;
+        }
+        .step-container {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .step-container.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-3">
+            <div class="flex justify-between items-center">
+                <a href="index.html" class="flex items-center">
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" class="mr-2">
+                        <!-- Book base -->
+                        <path d="M5 30C5 27.2386 7.23858 25 10 25H30C32.7614 25 35 27.2386 35 30V32C35 33.1046 34.1046 34 33 34H7C5.89543 34 5 33.1046 5 32V30Z" fill="#FF5733"/>
+                        <!-- Book pages -->
+                        <path d="M8 25V10C8 8.89543 8.89543 8 10 8H30C31.1046 8 32 8.89543 32 10V25" fill="white" stroke="#333333" stroke-width="1.5"/>
+                        <!-- Tree trunk -->
+                        <path d="M20 8V20" stroke="#5D4037" stroke-width="2" stroke-linecap="round"/>
+                        <!-- Tree branches -->
+                        <path d="M15 15L20 10L25 15" stroke="#5D4037" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M13 19L20 12L27 19" stroke="#5D4037" stroke-width="1.5" stroke-linecap="round"/>
+                        <!-- Tree leaves -->
+                        <circle cx="20" cy="7" r="3" fill="#4CAF50"/>
+                        <circle cx="16" cy="10" r="2" fill="#4CAF50"/>
+                        <circle cx="24" cy="10" r="2" fill="#4CAF50"/>
+                        <circle cx="14" cy="14" r="2" fill="#4CAF50"/>
+                        <circle cx="26" cy="14" r="2" fill="#4CAF50"/>
+                        <circle cx="12" cy="18" r="2" fill="#4CAF50"/>
+                        <circle cx="28" cy="18" r="2" fill="#4CAF50"/>
+                    </svg>
+                    <span class="text-xl font-bold font-serif text-[#333]">BookVerse</span>
+                </a>
+                <button id="save-draft" class="px-4 py-2 border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100">
+                    Save Draft
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Progress Bar -->
+        <div class="mb-8">
+            <div class="flex justify-between mb-2">
+                <span class="text-sm text-gray-600" id="progress-text">Step 1 of 5</span>
+                <span class="text-sm text-gray-600" id="progress-percentage">20%</span>
+            </div>
+            <div class="h-2 bg-gray-200 rounded-full">
+                <div class="h-full bg-[#FF5733] rounded-full transition-all duration-300" id="progress-bar" style="width: 20%"></div>
+            </div>
+        </div>
+
+        <!-- Step 1: Choose Publishing Type -->
+        <div id="step-1" class="step-container visible bg-white rounded-lg shadow-md p-8">
+            <h2 class="text-2xl font-serif font-bold mb-4">Choose Publishing Type</h2>
+            <p class="text-gray-600 mb-6">Select how you want to publish your book.</p>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <label class="relative flex cursor-pointer">
+                    <input type="radio" name="publishing_type" value="direct" class="sr-only peer" checked>
+                    <div class="w-full bg-white border rounded-lg p-4 peer-checked:border-[#FF5733] peer-checked:text-[#FF5733] transition-colors">
+                        <div class="flex flex-col items-center text-center">
+                            <svg class="h-8 w-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                            </svg>
+                            <span class="font-medium">Direct Publishing</span>
+                            <span class="text-sm text-gray-500">Start selling immediately</span>
+                        </div>
+                    </div>
+                </label>
+                <label class="relative flex cursor-pointer">
+                    <input type="radio" name="publishing_type" value="campaign" class="sr-only peer">
+                    <div class="w-full bg-white border rounded-lg p-4 peer-checked:border-[#FF5733] peer-checked:text-[#FF5733] transition-colors">
+                        <div class="flex flex-col items-center text-center">
+                            <svg class="h-8 w-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                            <span class="font-medium">Crowdfunding Campaign</span>
+                            <span class="text-sm text-gray-500">Pre-sell before printing</span>
+                        </div>
+                    </div>
+                </label>
+            </div>
+
+            <div class="mt-8 flex justify-end">
+                <button id="next-1" class="cta-button px-6 py-2 rounded-full font-semibold">Next</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Upload PDF -->
+        <div id="step-2" class="step-container hidden bg-white rounded-lg shadow-md p-8">
+            <h2 class="text-2xl font-serif font-bold mb-4">Upload Your Book PDF</h2>
+            <p class="text-gray-600 mb-6">Upload your print-ready PDF manuscript.</p>
+            
+            <div id="upload-zone" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-[#FF5733] transition-colors">
+                <input type="file" id="pdf-input" class="hidden" accept=".pdf">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
+                <p class="mt-4 text-gray-600">Drop your PDF here or click to upload</p>
+                <p class="mt-1 text-sm text-gray-500">Maximum file size: 50MB</p>
+            </div>
+
+            <div id="upload-status" class="hidden mt-4"></div>
+
+            <div class="mt-8 flex justify-end">
+                <button id="next-2" class="cta-button px-6 py-2 rounded-full font-semibold" disabled>Next</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Preview and Format -->
+        <div id="step-3" class="step-container hidden bg-white rounded-lg shadow-md p-8">
+            <h2 class="text-2xl font-serif font-bold mb-4">Preview and Format Your Book</h2>
+            <p class="text-gray-600 mb-6">Preview your book and adjust formatting to ensure it meets printing requirements.</p>
+
+            <div class="flex flex-col lg:flex-row gap-8">
+                <!-- Book Preview Section -->
+                <div class="lg:w-2/3">
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">Book Preview</h3>
+                        <div id="preview-container" class="min-h-[600px] bg-white rounded-lg shadow-inner p-4"></div>
+                    </div>
+                </div>
+
+                <!-- Format Settings Section -->
+                <div class="lg:w-1/3">
+                    <div class="bg-gray-50 rounded-lg p-6 sticky top-24">
+                        <h3 class="text-lg font-semibold mb-4">Format Settings</h3>
+                        <div id="format-settings" class="space-y-6"></div>
+                        
+                        <!-- Warning Messages -->
+                        <div id="format-warnings" class="mt-6">
+                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 hidden" id="margin-warning">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-yellow-700">
+                                            Margins must be at least 0.75 inches for printing.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Format Tips -->
+                        <div class="mt-6 bg-blue-50 rounded-lg p-4">
+                            <h4 class="font-medium text-blue-800 mb-2">Formatting Tips</h4>
+                            <ul class="text-sm text-blue-700 space-y-2">
+                                <li class="flex items-start">
+                                    <svg class="h-5 w-5 text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    Recommended margins: 0.75" minimum
+                                </li>
+                                <li class="flex items-start">
+                                    <svg class="h-5 w-5 text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    Popular trim size: 5.5" x 8.5"
+                                </li>
+                                <li class="flex items-start">
+                                    <svg class="h-5 w-5 text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    Paperback binding for lower costs
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-between border-t pt-6">
+                <button id="back-3" class="px-6 py-3 rounded-full text-gray-600 border border-gray-300 hover:bg-gray-100 transition-colors">
+                    <span class="flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                        Back
+                    </span>
+                </button>
+                <button id="next-3" class="cta-button px-6 py-3 rounded-full font-semibold transition-colors">
+                    <span class="flex items-center">
+                        Next
+                        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 4: Book Details -->
+        <div id="step-4" class="step-container hidden bg-white rounded-lg shadow-md p-8">
+            <h2 class="text-2xl font-serif font-bold mb-4">Enter Book Details</h2>
+            <p class="text-gray-600 mb-6">Provide information about your book.</p>
+
+            <form id="book-details-form" class="space-y-6">
+                <!-- Basic Info -->
+                <div class="space-y-4">
+                    <div>
+                        <label for="book-title" class="block text-sm font-medium text-gray-700 mb-1">Book Title</label>
+                        <input type="text" id="book-title" name="title" required
+                               class="w-full p-2 border border-gray-300 rounded-md focus:ring-[#FF5733] focus:border-[#FF5733]"
+                               placeholder="Enter your book's title">
+                    </div>
+
+                    <div>
+                        <label for="author-name" class="block text-sm font-medium text-gray-700 mb-1">Author Name</label>
+                        <input type="text" id="author-name" name="author_name" required
+                               class="w-full p-2 border border-gray-300 rounded-md focus:ring-[#FF5733] focus:border-[#FF5733]"
+                               placeholder="Your name or pen name">
+                    </div>
+
+                    <div>
+                        <label for="book-description" class="block text-sm font-medium text-gray-700 mb-1">
+                            Book Description
+                            <span class="text-gray-500 text-xs" id="description-count">(0/500 words)</span>
+                        </label>
+                        <textarea id="book-description" name="description" rows="4" required
+                                  class="w-full p-2 border border-gray-300 rounded-md focus:ring-[#FF5733] focus:border-[#FF5733]"
+                                  placeholder="Write a compelling description of your book..."></textarea>
+                    </div>
+
+                    <div>
+                        <label for="book-genre" class="block text-sm font-medium text-gray-700 mb-1">Genre</label>
+                        <select id="book-genre" name="genre" required
+                                class="w-full p-2 border border-gray-300 rounded-md focus:ring-[#FF5733] focus:border-[#FF5733]">
+                            <option value="">Select a genre</option>
+                            <option value="fiction">Fiction</option>
+                            <option value="non-fiction">Non-Fiction</option>
+                            <option value="mystery">Mystery</option>
+                            <option value="sci-fi">Science Fiction</option>
+                            <option value="fantasy">Fantasy</option>
+                            <option value="romance">Romance</option>
+                            <option value="thriller">Thriller</option>
+                            <option value="horror">Horror</option>
+                            <option value="biography">Biography</option>
+                            <option value="history">History</option>
+                            <option value="self-help">Self-Help</option>
+                            <option value="children">Children's</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="binding-type" class="block text-sm font-medium text-gray-700 mb-1">Binding Type</label>
+                        <select id="binding-type" name="binding_type" required
+                                class="w-full p-2 border border-gray-300 rounded-md focus:ring-[#FF5733] focus:border-[#FF5733]">
+                            <option value="paperback">Paperback</option>
+                            <option value="hardcover">Hardcover</option>
+                            <option value="spiral">Spiral Bound</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Cover Image Upload -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold">Cover Image</h3>
+                    <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-[#FF5733] transition-colors">
+                        <div class="space-y-1 text-center">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            <div class="flex text-sm text-gray-600">
+                                <label for="cover-image" class="relative cursor-pointer bg-white rounded-md font-medium text-[#FF5733] hover:text-[#E04C2D] focus-within:outline-none">
+                                    <span>Upload a file</span>
+                                    <input id="cover-image" name="cover" type="file" class="sr-only" accept="image/jpeg,image/png">
+                                </label>
+                                <p class="pl-1">or drag and drop</p>
+                            </div>
+                            <p class="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+                        </div>
+                    </div>
+                    <div id="cover-preview-container" class="hidden mt-4">
+                        <img id="cover-preview-image" src="" alt="Cover preview" class="max-h-48 rounded-lg mx-auto">
+                    </div>
+                </div>
+
+                <!-- Campaign-specific fields -->
+                <div id="campaign-fields" class="space-y-4 hidden">
+                    <div>
+                        <label for="min-purchases" class="block text-sm font-medium text-gray-700 mb-1">Minimum Pre-Purchases</label>
+                        <input type="number" id="min-purchases" name="min_purchases" min="50" step="10"
+                               class="w-full p-2 border border-gray-300 rounded-md focus:ring-[#FF5733] focus:border-[#FF5733]"
+                               value="100">
+                        <p class="text-xs text-gray-500 mt-1">Minimum 50 pre-purchases required</p>
+                    </div>
+
+                    <div>
+                        <label for="campaign-duration" class="block text-sm font-medium text-gray-700 mb-1">Campaign Duration</label>
+                        <select id="campaign-duration" name="duration"
+                                class="w-full p-2 border border-gray-300 rounded-md focus:ring-[#FF5733] focus:border-[#FF5733]">
+                            <option value="30">30 days</option>
+                            <option value="60">60 days</option>
+                            <option value="90">90 days</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Pricing -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold">Pricing</h3>
+                    <div>
+                        <label for="book-price" class="block text-sm font-medium text-gray-700 mb-1">Book Price</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2 text-gray-500">$</span>
+                            <input type="number" id="book-price" name="price" required min="10" step="0.01"
+                                   class="w-full pl-8 p-2 border border-gray-300 rounded-md focus:ring-[#FF5733] focus:border-[#FF5733]"
+                                   value="20">
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Minimum price: $10.00</p>
+                    </div>
+                </div>
+            </form>
+
+            <div class="mt-8 flex justify-between border-t pt-6">
+                <button id="back-4" class="px-6 py-3 rounded-full text-gray-600 border border-gray-300 hover:bg-gray-100 transition-colors">Back</button>
+                <button id="next-4" class="cta-button px-6 py-3 rounded-full font-semibold">Next</button>
+            </div>
+        </div>
+
+        <!-- Step 5: Review -->
+        <div id="step-5" class="step-container hidden bg-white rounded-lg shadow-md p-8">
+            <h2 class="text-2xl font-serif font-bold mb-4">Review Your Book</h2>
+            <p class="text-gray-600 mb-6">Review all details before publishing your book.</p>
+
+            <div class="space-y-8">
+                <!-- Book Preview -->
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h3 class="text-lg font-semibold mb-4">Book Preview</h3>
+                    <div class="flex items-start space-x-6">
+                        <div class="w-1/3">
+                            <div id="cover-preview" class="aspect-[2/3] bg-white rounded-lg shadow-md"></div>
+                        </div>
+                        <div class="w-2/3 space-y-4">
+                            <h4 id="preview-title" class="text-xl font-bold">Book Title</h4>
+                            <p id="preview-author" class="text-gray-600">by Author Name</p>
+                            <p id="preview-description" class="text-gray-700">Book description...</p>
+                            <div class="flex space-x-4 text-sm text-gray-600">
+                                <span id="preview-genre">Genre</span>
+                                <span>•</span>
+                                <span id="preview-pages">0 pages</span>
+                                <span>•</span>
+                                <span id="preview-binding">Paperback</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Publishing Details -->
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h3 class="text-lg font-semibold mb-4">Publishing Details</h3>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-medium mb-2">Publishing Type</h4>
+                            <p id="preview-publishing-type" class="text-gray-600">Direct Publishing</p>
+                        </div>
+                        <div>
+                            <h4 class="font-medium mb-2">Price</h4>
+                            <p id="preview-price" class="text-gray-600">$20.00</p>
+                        </div>
+                        <div id="preview-campaign-details" class="hidden col-span-2">
+                            <h4 class="font-medium mb-2">Campaign Details</h4>
+                            <div class="grid grid-cols-2 gap-4 text-gray-600">
+                                <div>
+                                    <span class="block text-sm text-gray-500">Minimum Pre-purchases</span>
+                                    <span id="preview-min-purchases">100 copies</span>
+                                </div>
+                                <div>
+                                    <span class="block text-sm text-gray-500">Campaign Duration</span>
+                                    <span id="preview-duration">30 days</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Terms -->
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h3 class="text-lg font-semibold mb-4">Terms & Conditions</h3>
+                    <div class="space-y-4">
+                        <label class="flex items-start">
+                            <input type="checkbox" id="terms" class="mt-1 text-[#FF5733] focus:ring-[#FF5733]">
+                            <span class="ml-3 text-sm text-gray-600">
+                                I agree to the <a href="#" class="text-[#FF5733] hover:underline">Terms of Service</a> and 
+                                <a href="#" class="text-[#FF5733] hover:underline">Content Guidelines</a>.
+                            </span>
+                        </label>
+                        <label class="flex items-start">
+                            <input type="checkbox" id="rights" class="mt-1 text-[#FF5733] focus:ring-[#FF5733]">
+                            <span class="ml-3 text-sm text-gray-600">
+                                I confirm that I have the rights to publish this book and all its contents.
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-between border-t pt-6">
+                <button id="back-5" class="px-6 py-3 rounded-full text-gray-600 border border-gray-300 hover:bg-gray-100 transition-colors">
+                    <span class="flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                        Back
+                    </span>
+                </button>
+                <button id="publish-book" class="cta-button px-8 py-3 rounded-full font-semibold transition-colors" disabled>
+                    <span class="flex items-center">
+                        Publish Book
+                        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Global variables
+        let uploadedPdfUrl = null;
+        let bookPreview = null;
+        let formatSettings = null;
+
+        // Initialize Supabase at the top level
+        const { createClient } = supabase;
+        const supabaseClient = createClient(
+            'https://qcnqdwylsxgpnoogcuhm.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjbnFkd3lsc3hncG5vb2djdWhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUyNDY4NTEsImV4cCI6MjA2MDgyMjg1MX0.4z2ZSBfJLSSReG5KLZXrEUVN8n2HU1EuSvsy98sPEgY'
+        );
+
+        // Check if PDF.js is loaded correctly
+        function checkPdfJsLoaded() {
+            if (typeof pdfjsLib === 'undefined') {
+                console.error('PDF.js library not loaded');
+                showError('PDF viewer library failed to load. Please refresh the page.');
+                return false;
+            }
+            return true;
+        }
+
+        // Show error message
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50';
+            errorDiv.innerHTML = `
+                <div class="flex items-center">
+                    <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>${message}</span>
+                </div>
+            `;
+            document.body.appendChild(errorDiv);
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+
+        // Initialize components with error handling
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Check if PDF.js is loaded
+                if (!checkPdfJsLoaded()) return;
+
+                // Add event listener for Step 1 Next button
+                document.getElementById('next-1')?.addEventListener('click', () => {
+                    showStep(2);
+                });
+
+                // Set up file upload
+                const uploadZone = document.getElementById('upload-zone');
+                const pdfInput = document.getElementById('pdf-input');
+                const uploadStatus = document.getElementById('upload-status');
+                const nextButton = document.getElementById('next-2');
+
+                if (!uploadZone || !pdfInput || !uploadStatus || !nextButton) {
+                    throw new Error('Required elements not found');
+                }
+
+                // Drag and drop handlers with error checking
+                uploadZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    uploadZone.classList.add('border-[#FF5733]');
+                });
+
+                uploadZone.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    uploadZone.classList.remove('border-[#FF5733]');
+                });
+
+                uploadZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    uploadZone.classList.remove('border-[#FF5733]');
+                    
+                    const file = e.dataTransfer.files[0];
+                    if (file) {
+                        if (file.type !== 'application/pdf') {
+                            showError('Please upload a PDF file');
+                            return;
+                        }
+                        if (file.size > 50 * 1024 * 1024) { // 50MB limit
+                            showError('File size must be less than 50MB');
+                            return;
+                        }
+                        handlePdfUpload(file);
+                    }
+                });
+
+                uploadZone.addEventListener('click', () => {
+                    pdfInput.click();
+                });
+
+                pdfInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        if (file.type !== 'application/pdf') {
+                            showError('Please upload a PDF file');
+                            return;
+                        }
+                        if (file.size > 50 * 1024 * 1024) {
+                            showError('File size must be less than 50MB');
+                            return;
+                        }
+                        handlePdfUpload(file);
+                    }
+                });
+
+                // Update navigation between steps
+                document.getElementById('next-2')?.addEventListener('click', () => {
+                    if (!uploadedPdfUrl) {
+                        showError('Please upload a PDF file first');
+                        return;
+                    }
+                    showStep(3);
+                    initializeStep3();
+                });
+
+                document.getElementById('back-2')?.addEventListener('click', () => {
+                    showStep(1);
+                });
+
+                document.getElementById('next-3')?.addEventListener('click', () => {
+                    if (!validateFormatSettings()) {
+                        return;
+                    }
+                    showStep(4);
+                });
+
+                document.getElementById('back-3')?.addEventListener('click', () => {
+                    showStep(2);
+                });
+
+                document.getElementById('next-4')?.addEventListener('click', () => {
+                    const form = document.getElementById('book-details-form');
+                    if (form.checkValidity() && document.getElementById('cover-image').files.length > 0) {
+                        updatePreview();
+                        showStep(5);
+                    } else {
+                        if (!document.getElementById('cover-image').files.length > 0) {
+                            showError('Please upload a cover image');
+                        }
+                        form.reportValidity();
+                    }
+                });
+
+                document.getElementById('back-4')?.addEventListener('click', () => {
+                    showStep(3);
+                });
+
+                document.getElementById('back-5')?.addEventListener('click', () => {
+                    showStep(4);
+                });
+
+                // Publishing type toggle
+                const publishingTypeInputs = document.querySelectorAll('input[name="publishing_type"]');
+                const campaignFields = document.getElementById('campaign-fields');
+
+                publishingTypeInputs.forEach(input => {
+                    input.addEventListener('change', (e) => {
+                        if (e.target.value === 'campaign') {
+                            campaignFields.classList.remove('hidden');
+                        } else {
+                            campaignFields.classList.add('hidden');
+                        }
+                    });
+                });
+
+                // Description word count
+                const description = document.getElementById('book-description');
+                const wordCount = document.getElementById('description-count');
+
+                description?.addEventListener('input', () => {
+                    const words = description.value.trim().split(/\s+/).length;
+                    wordCount.textContent = `(${words}/500 words)`;
+                    if (words > 500) {
+                        description.value = description.value
+                            .split(/\s+/)
+                            .slice(0, 500)
+                            .join(' ');
+                    }
+                });
+
+                // Terms checkboxes
+                const termsCheckbox = document.getElementById('terms');
+                const rightsCheckbox = document.getElementById('rights');
+                const publishButton = document.getElementById('publish-book');
+
+                function updatePublishButton() {
+                    publishButton.disabled = !(termsCheckbox.checked && rightsCheckbox.checked);
+                }
+
+                termsCheckbox?.addEventListener('change', updatePublishButton);
+                rightsCheckbox?.addEventListener('change', updatePublishButton);
+
+                // Publish button
+                publishButton?.addEventListener('click', handlePublish);
+
+                // Add cover image upload handling
+                const coverInput = document.getElementById('cover-image');
+                const coverPreviewContainer = document.getElementById('cover-preview-container');
+                const coverPreviewImage = document.getElementById('cover-preview-image');
+
+                coverInput?.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        if (!file.type.startsWith('image/')) {
+                            showError('Please upload an image file (PNG or JPG)');
+                            return;
+                        }
+                        if (file.size > 5 * 1024 * 1024) {
+                            showError('Image size must be less than 5MB');
+                            return;
+                        }
+
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            coverPreviewImage.src = e.target.result;
+                            coverPreviewContainer.classList.remove('hidden');
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showError('Failed to initialize the page. Please refresh and try again.');
+            }
+        });
+
+        // Handle PDF upload with improved error handling
+        async function handlePdfUpload(file) {
+            const uploadStatus = document.getElementById('upload-status');
+            const nextButton = document.getElementById('next-2');
+
+            try {
+                if (!checkPdfJsLoaded()) return;
+
+                uploadStatus.innerHTML = `
+                    <div class="flex items-center text-gray-600">
+                        <svg class="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Uploading ${file.name}...
+                    </div>
+                `;
+                uploadStatus.classList.remove('hidden');
+
+                // Test if we can load the PDF
+                const url = URL.createObjectURL(file);
+                const pdf = await pdfjsLib.getDocument(url).promise;
+                
+                if (!pdf) {
+                    throw new Error('Failed to load PDF');
+                }
+
+                // Store the URL if PDF is valid
+                uploadedPdfUrl = url;
+
+                uploadStatus.innerHTML = `
+                    <div class="flex items-center text-green-600">
+                        <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        ${file.name} uploaded successfully (${pdf.numPages} pages)
+                    </div>
+                `;
+                nextButton.disabled = false;
+
+            } catch (error) {
+                console.error('Upload error:', error);
+                uploadStatus.innerHTML = `
+                    <div class="flex items-center text-red-600">
+                        <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        Failed to upload ${file.name}. ${error.message || 'Please try again.'}
+                    </div>
+                `;
+                nextButton.disabled = true;
+                
+                // Clean up failed upload
+                if (uploadedPdfUrl) {
+                    URL.revokeObjectURL(uploadedPdfUrl);
+                    uploadedPdfUrl = null;
+                }
+            }
+        }
+
+        // Initialize Step 3 components
+        function initializeStep3() {
+            if (!bookPreview && uploadedPdfUrl) {
+                // Initialize book preview
+                bookPreview = new BookPreview(
+                    document.getElementById('preview-container'),
+                    uploadedPdfUrl
+                );
+
+                // Initialize format settings
+                formatSettings = new FormatSettings(
+                    document.getElementById('format-settings'),
+                    handleFormatChange
+                );
+            }
+        }
+
+        // Handle format changes
+        function handleFormatChange(type, value) {
+            if (!bookPreview) return;
+
+            switch (type) {
+                case 'trimSize':
+                    bookPreview.setTrimSize(value.width, value.height);
+                    break;
+                case 'binding':
+                    bookPreview.setBinding(value.name);
+                    break;
+                case 'margins':
+                    bookPreview.setMargins(value);
+                    break;
+            }
+        }
+
+        // Validate format settings
+        function validateFormatSettings() {
+            if (!formatSettings) return false;
+            return formatSettings.validateSettings();
+        }
+
+        // Navigation helper
+        function showStep(stepNumber) {
+            const progress = (stepNumber / 5) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            document.getElementById('progress-text').textContent = `Step ${stepNumber} of 5`;
+            document.getElementById('progress-percentage').textContent = `${progress}%`;
+
+            document.querySelectorAll('.step-container').forEach(step => {
+                step.classList.remove('visible');
+                step.classList.add('hidden');
+            });
+
+            const currentStep = document.getElementById(`step-${stepNumber}`);
+            currentStep.classList.remove('hidden');
+            setTimeout(() => currentStep.classList.add('visible'), 50);
+        }
+
+        // Update preview in Step 5
+        function updatePreview() {
+            // Update title
+            document.getElementById('preview-title').textContent = 
+                document.getElementById('book-title').value || 'Book Title';
+
+            // Update author
+            document.getElementById('preview-author').textContent = 
+                'by ' + (document.getElementById('author-name').value || 'Author Name');
+
+            // Update description
+            document.getElementById('preview-description').textContent = 
+                document.getElementById('book-description').value || 'Book description...';
+
+            // Update genre
+            document.getElementById('preview-genre').textContent = 
+                document.getElementById('book-genre').value || 'Genre';
+
+            // Update price
+            document.getElementById('preview-price').textContent = 
+                '$' + (parseFloat(document.getElementById('book-price').value) || 0).toFixed(2);
+
+            // Update publishing type and campaign details
+            const publishingType = document.querySelector('input[name="publishing_type"]:checked').value;
+            document.getElementById('preview-publishing-type').textContent = 
+                publishingType === 'direct' ? 'Direct Publishing' : 'Crowdfunding Campaign';
+
+            const campaignDetails = document.getElementById('preview-campaign-details');
+            if (publishingType === 'campaign') {
+                campaignDetails.classList.remove('hidden');
+                document.getElementById('preview-min-purchases').textContent = 
+                    document.getElementById('min-purchases').value + ' copies';
+                document.getElementById('preview-duration').textContent = 
+                    document.getElementById('campaign-duration').value + ' days';
+            } else {
+                campaignDetails.classList.add('hidden');
+            }
+        }
+
+        // Handle publish
+        async function handlePublish() {
+            const publishButton = document.getElementById('publish-book');
+            try {
+                publishButton.disabled = true;
+                publishButton.innerHTML = `
+                    <span class="flex items-center">
+                        <svg class="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Publishing...
+                    </span>
+                `;
+
+                // Get current user
+                const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+                if (userError) throw new Error('Authentication error: ' + userError.message);
+                if (!user) throw new Error('Please log in to publish a book');
+
+                const isDirectPublish = document.querySelector('input[name="publishing_type"]:checked').value === 'direct';
+
+                // Get binding type from the select element
+                const bindingType = document.getElementById('binding-type')?.value || 'paperback';
+
+                // Get page count from PDF
+                let pageCount = '0';
+                if (bookPreview && bookPreview.pdf) {
+                    pageCount = bookPreview.pdf.numPages.toString();
+                }
+
+                // Get form data
+                const formData = {
+                    title: document.getElementById('book-title').value,
+                    author_name: document.getElementById('author-name').value,
+                    description: document.getElementById('book-description').value,
+                    genre: document.getElementById('book-genre').value,
+                    price: parseFloat(document.getElementById('book-price').value).toFixed(2),
+                    is_direct_publish: isDirectPublish,
+                    min_purchases: isDirectPublish ? 1 : parseInt(document.getElementById('min-purchases').value),
+                    duration_days: isDirectPublish ? 0 : parseInt(document.getElementById('campaign-duration').value),
+                    status: 'active',
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                    user_id: user.id,
+                    pdf_url: uploadedPdfUrl,
+                    cover_image_url: document.getElementById('cover-preview-image').src,
+                    binding_type: bindingType,
+                    page_count: pageCount,
+                    reorder_available: false
+                };
+
+                // Create campaign in Supabase
+                const { data, error } = await supabaseClient
+                    .from('campaigns')
+                    .insert([formData])
+                    .select()
+                    .single();
+
+                if (error) throw new Error('Failed to create campaign: ' + error.message);
+                if (!data) throw new Error('No data returned from campaign creation');
+
+                // Redirect to success page with campaign ID
+                window.location.href = `success.html?id=${data.id}`;
+
+            } catch (error) {
+                console.error('Error publishing book:', error);
+                showError(error.message || 'Failed to publish book. Please try again.');
+                
+                // Reset button
+                publishButton.disabled = false;
+                publishButton.innerHTML = `
+                    <span class="flex items-center">
+                        Publish Book
+                        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </span>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

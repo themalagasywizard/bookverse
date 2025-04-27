@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campaign Details - BookVerse</title>
+    <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/tailwindlabs/tailwindcss/master/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Georgia&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        h1, h2, h3, h4, h5, h6, .font-serif {
+            font-family: 'Georgia', serif;
+        }
+        .cta-button {
+            background-color: #FF5733;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+        .cta-button:hover {
+            background-color: #E04C2D;
+        }
+        .progress-bar-fill {
+            background-color: #FF5733;
+            transition: width 0.5s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header will be loaded dynamically -->
+    <div id="header-placeholder"></div>
+
+    <!-- Loading State -->
+    <div id="loading" class="fixed inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF5733] mb-4"></div>
+            <p class="text-gray-600">Loading campaign details...</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Campaign Details Section -->
+        <div id="campaign-details" class="hidden">
+            <!-- Book Cover and Basic Info -->
+            <div class="grid md:grid-cols-3 gap-8 mb-12">
+                <!-- Left Column - Cover Image -->
+                <div class="md:col-span-1">
+                    <img id="cover-image" src="" alt="" class="w-full rounded-lg shadow-lg">
+                    
+                    <!-- Campaign Progress -->
+                    <div class="mt-6 bg-white p-6 rounded-lg shadow">
+                        <div id="campaign-status" class="mb-4">
+                            <!-- This section will be populated dynamically based on publishing type -->
+                        </div>
+                        <div class="text-center">
+                            <p id="campaign-price" class="text-2xl font-bold text-[#333] mb-2"></p>
+                            <button id="back-button" class="cta-button w-full py-3 rounded-full font-semibold">
+                                <!-- Button text will be set dynamically -->
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column - Book Details -->
+                <div class="md:col-span-2">
+                    <h1 id="book-title" class="text-4xl font-bold text-[#333] mb-4"></h1>
+                    
+                    <!-- Author Info -->
+                    <div class="flex items-center mb-6">
+                        <img id="author-avatar" src="https://picsum.photos/50" alt="Author" class="w-12 h-12 rounded-full mr-4">
+                        <div>
+                            <p class="text-lg font-semibold text-[#333]">by <a id="author-name" href="#" class="hover:text-[#FF5733]"></a></p>
+                            <p id="author-bio" class="text-gray-600 text-sm"></p>
+                        </div>
+                    </div>
+
+                    <!-- Book Details -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                        <div class="bg-white p-4 rounded-lg shadow text-center">
+                            <p class="text-gray-600 text-sm">Genre</p>
+                            <p id="book-genre" class="font-semibold text-[#333]"></p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow text-center">
+                            <p class="text-gray-600 text-sm">Pages</p>
+                            <p id="page-count" class="font-semibold text-[#333]"></p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow text-center">
+                            <p class="text-gray-600 text-sm">Binding</p>
+                            <p id="binding-type" class="font-semibold text-[#333]"></p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow text-center">
+                            <p class="text-gray-600 text-sm">Estimated Delivery</p>
+                            <p id="delivery-date" class="font-semibold text-[#333]"></p>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="bg-white p-6 rounded-lg shadow mb-8">
+                        <h2 class="text-2xl font-bold text-[#333] mb-4">About the Book</h2>
+                        <p id="book-description" class="text-gray-700 leading-relaxed"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Sections -->
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Preview Section -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h2 class="text-2xl font-bold text-[#333] mb-4">Preview</h2>
+                    <p class="text-gray-600 mb-4">Get a sneak peek into the book:</p>
+                    <div id="preview-content" class="prose max-w-none">
+                        <!-- Preview content will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Similar Books Section -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h2 class="text-2xl font-bold text-[#333] mb-4">You Might Also Like</h2>
+                    <div id="similar-books" class="space-y-4">
+                        <!-- Similar books will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div id="error-message" class="hidden text-center py-12">
+            <h2 class="text-2xl font-bold text-red-500 mb-4">Oops! Something went wrong</h2>
+            <p class="text-gray-600 mb-4">We couldn't load the campaign details. Please try again later.</p>
+            <a href="/" class="cta-button px-6 py-2 rounded-full inline-block">Return to Home</a>
+        </div>
+    </main>
+
+    <!-- Footer will be loaded dynamically -->
+    <div id="footer-placeholder"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Initialize Supabase client
+        const supabaseUrl = 'https://qcnqdwylsxgpnoogcuhm.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjbnFkd3lsc3hncG5vb2djdWhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUyNDY4NTEsImV4cCI6MjA2MDgyMjg1MX0.4z2ZSBfJLSSReG5KLZXrEUVN8n2HU1EuSvsy98sPEgY';
+        const { createClient } = supabase;
+        const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+
+        // Helper function to format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount);
+        }
+
+        // Helper function to format date
+        function formatDate(date) {
+            return new Date(date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        // Helper function to calculate days remaining
+        function getDaysRemaining(endDate) {
+            const end = new Date(endDate);
+            const now = new Date();
+            const diff = end - now;
+            return Math.ceil(diff / (1000 * 60 * 60 * 24));
+        }
+
+        // Load campaign details
+        async function loadCampaignDetails() {
+            try {
+                // Get campaign ID from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const campaignId = urlParams.get('id');
+
+                if (!campaignId) {
+                    throw new Error('No campaign ID provided');
+                }
+
+                // Fetch campaign details
+                const { data: campaign, error } = await supabaseClient
+                    .from('campaigns')
+                    .select('*')
+                    .eq('id', campaignId)
+                    .single();
+
+                if (error) throw error;
+                if (!campaign) throw new Error('Campaign not found');
+
+                // Update UI with campaign details
+                document.title = `${campaign.title} - BookVerse`;
+                document.getElementById('cover-image').src = campaign.cover_image_url || 'https://picsum.photos/400/600';
+                document.getElementById('cover-image').alt = campaign.title;
+                document.getElementById('book-title').textContent = campaign.title;
+                
+                // Author section
+                const authorName = document.getElementById('author-name');
+                authorName.textContent = campaign.author_name;
+                authorName.href = `profile.html?author=${encodeURIComponent(campaign.author_name)}`;
+                
+                // Author bio placeholder
+                document.getElementById('author-bio').textContent = 'BookVerse Author';
+                
+                document.getElementById('book-description').textContent = campaign.description;
+                document.getElementById('book-genre').textContent = campaign.genre;
+                document.getElementById('page-count').textContent = campaign.page_count;
+                document.getElementById('binding-type').textContent = campaign.binding_type;
+
+                // Update campaign status section based on publishing type
+                const campaignStatus = document.getElementById('campaign-status');
+                const backButton = document.getElementById('back-button');
+                
+                if (campaign.is_direct_publish) {
+                    // Direct Publishing UI
+                    campaignStatus.innerHTML = `
+                        <div class="text-center">
+                            <span class="inline-block bg-green-500 text-white px-4 py-1 rounded-full text-sm font-semibold mb-2">
+                                Available Now
+                            </span>
+                            <p class="text-gray-600">Print on demand - Ships within 3-5 business days</p>
+                        </div>
+                    `;
+                    backButton.textContent = 'Buy Now';
+                    
+                    // Update delivery date for direct publishing
+                    const deliveryDate = new Date();
+                    deliveryDate.setDate(deliveryDate.getDate() + 5); // 5 business days
+                    document.getElementById('delivery-date').textContent = formatDate(deliveryDate);
+                } else {
+                    // Crowdfunding Campaign UI
+                    const progress = (campaign.current_purchases || 0) / campaign.min_purchases * 100;
+                    const endDate = new Date(campaign.created_at);
+                    endDate.setDate(endDate.getDate() + campaign.duration_days);
+                    const daysRemaining = getDaysRemaining(endDate);
+                    
+                    campaignStatus.innerHTML = `
+                        <div class="mb-4">
+                            <div class="flex justify-between text-sm mb-2">
+                                <span class="text-gray-600">${campaign.current_purchases || 0} of ${campaign.min_purchases} pre-purchases</span>
+                                <span class="text-gray-600">${daysRemaining} days remaining</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div class="progress-bar-fill h-2.5 rounded-full" style="width: ${progress}%"></div>
+                            </div>
+                        </div>
+                    `;
+                    backButton.textContent = 'Back this Book';
+                    
+                    // Update delivery date for campaign
+                    const deliveryDate = new Date(endDate);
+                    deliveryDate.setMonth(deliveryDate.getMonth() + 3);
+                    document.getElementById('delivery-date').textContent = formatDate(deliveryDate);
+                }
+                
+                // Set price
+                document.getElementById('campaign-price').textContent = formatCurrency(campaign.price);
+
+                // Load similar books
+                loadSimilarBooks(campaign.genre);
+
+                // Show the details and hide loading state
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('campaign-details').classList.remove('hidden');
+                document.getElementById('error-message').classList.add('hidden');
+
+            } catch (error) {
+                console.error('Error loading campaign:', error);
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('campaign-details').classList.add('hidden');
+                document.getElementById('error-message').classList.remove('hidden');
+            }
+        }
+
+        // Handle backing a book
+        async function handleBackBook(campaign) {
+            try {
+                // Check if user is logged in
+                const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+                
+                if (!user) {
+                    // Store the campaign ID in localStorage for redirect after login
+                    localStorage.setItem('pendingCampaign', campaign.id);
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                if (campaign.is_direct_publish) {
+                    // Handle direct purchase
+                    // TODO: Implement payment processing for direct purchase
+                    alert('Proceeding to checkout...');
+                    // window.location.href = `checkout.html?book=${campaign.id}`;
+                } else {
+                    // Handle campaign backing
+                    // TODO: Implement campaign backing process
+                    alert('Processing campaign backing...');
+                    // window.location.href = `back-campaign.html?campaign=${campaign.id}`;
+                }
+            } catch (error) {
+                console.error('Error handling book action:', error);
+                alert('An error occurred. Please try again.');
+            }
+        }
+
+        // Load similar books
+        async function loadSimilarBooks(genre) {
+            try {
+                const { data: books, error } = await supabaseClient
+                    .from('campaigns')
+                    .select('id, title, author_name, cover_image_url')
+                    .eq('status', 'active')
+                    .eq('genre', genre)
+                    .limit(3);
+
+                if (error) throw error;
+
+                const similarBooksContainer = document.getElementById('similar-books');
+                similarBooksContainer.innerHTML = books.map(book => `
+                    <a href="campaign.html?id=${book.id}" class="flex items-center space-x-4 hover:bg-gray-50 p-2 rounded">
+                        <img src="${book.cover_image_url || 'https://picsum.photos/50/75'}" 
+                             alt="${book.title}" 
+                             class="w-12 h-16 object-cover rounded">
+                        <div>
+                            <h3 class="font-semibold text-[#333]">${book.title}</h3>
+                            <p class="text-sm text-gray-600">by ${book.author_name}</p>
+                        </div>
+                    </a>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error loading similar books:', error);
+            }
+        }
+
+        // Load campaign details when the page loads
+        document.addEventListener('DOMContentLoaded', loadCampaignDetails);
+    </script>
+</body>
+</html> 

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - BookVerse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Georgia&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        h1, h2, h3, h4, h5, h6, .font-serif {
+            font-family: 'Georgia', serif;
+        }
+        .cta-button {
+            background-color: #FF5733;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+        .cta-button:hover {
+            background-color: #E04C2D;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header Section -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-3 max-w-6xl flex justify-between items-center">
+            <a href="index.html" class="flex items-center">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" class="mr-2">
+                    <!-- Book base -->
+                    <path d="M5 30C5 27.2386 7.23858 25 10 25H30C32.7614 25 35 27.2386 35 30V32C35 33.1046 34.1046 34 33 34H7C5.89543 34 5 33.1046 5 32V30Z" fill="#FF5733"/>
+                    <!-- Book pages -->
+                    <path d="M8 25V10C8 8.89543 8.89543 8 10 8H30C31.1046 8 32 8.89543 32 10V25" fill="white" stroke="#333333" stroke-width="1.5"/>
+                    <!-- Tree trunk -->
+                    <path d="M20 8V20" stroke="#5D4037" stroke-width="2" stroke-linecap="round"/>
+                    <!-- Tree branches -->
+                    <path d="M15 15L20 10L25 15" stroke="#5D4037" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M13 19L20 12L27 19" stroke="#5D4037" stroke-width="1.5" stroke-linecap="round"/>
+                    <!-- Tree leaves -->
+                    <circle cx="20" cy="7" r="3" fill="#4CAF50"/>
+                    <circle cx="16" cy="10" r="2" fill="#4CAF50"/>
+                    <circle cx="24" cy="10" r="2" fill="#4CAF50"/>
+                    <circle cx="14" cy="14" r="2" fill="#4CAF50"/>
+                    <circle cx="26" cy="14" r="2" fill="#4CAF50"/>
+                    <circle cx="12" cy="18" r="2" fill="#4CAF50"/>
+                    <circle cx="28" cy="18" r="2" fill="#4CAF50"/>
+                </svg>
+                <span class="text-xl font-bold font-serif text-[#333]">BookVerse</span>
+            </a>
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="index.html" class="text-gray-600 hover:text-[#FF5733] hover:underline">Home</a>
+                <a href="index.html#campaigns" class="text-gray-600 hover:text-[#FF5733] hover:underline">Browse Campaigns</a>
+                <a href="index.html#how-it-works" class="text-gray-600 hover:text-[#FF5733] hover:underline">How It Works</a>
+                <a href="index.html#contact" class="text-gray-600 hover:text-[#FF5733] hover:underline">Contact</a>
+                
+                <!-- User Profile Dropdown -->
+                <div class="relative" id="userProfileDropdown">
+                    <button id="profileDropdownButton" class="flex items-center space-x-2 focus:outline-none">
+                        <div class="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
+                            <img id="headerAvatar" src="" alt="User Avatar" class="w-full h-full object-cover hidden">
+                            <span id="headerInitials" class="text-sm font-medium text-gray-600">UN</span>
+                        </div>
+                        <span id="headerUserName" class="text-gray-700">User Name</span>
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    
+                    <div id="profileDropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md py-1 z-50">
+                        <a href="#" class="signOutBtn block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign Out</a>
+                    </div>
+                </div>
+                
+                <a href="create-campaign.html" class="cta-button px-6 py-2 rounded-full font-semibold text-sm shadow-md">Start a Campaign</a>
+            </div>
+            <!-- Mobile Menu Button -->
+            <div class="md:hidden flex items-center">
+                <button id="mobile-menu-button" class="text-gray-600 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+        </nav>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="md:hidden hidden bg-white py-4 px-6 absolute top-full left-0 w-full shadow-lg">
+            <a href="index.html" class="block py-2 text-gray-600 hover:text-[#FF5733]">Home</a>
+            <a href="index.html#campaigns" class="block py-2 text-gray-600 hover:text-[#FF5733]">Browse Campaigns</a>
+            <a href="index.html#how-it-works" class="block py-2 text-gray-600 hover:text-[#FF5733]">How It Works</a>
+            <a href="index.html#contact" class="block py-2 text-gray-600 hover:text-[#FF5733]">Contact</a>
+            
+            <!-- Mobile User Profile -->
+            <div class="py-2">
+                <button class="signOutBtn block py-2 text-gray-600 hover:text-[#FF5733] w-full text-left">Sign Out</button>
+            </div>
+            
+            <a href="create-campaign.html" class="block mt-4 cta-button text-center px-6 py-2 rounded-full font-semibold text-sm shadow-md">Start a Campaign</a>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h1 class="text-2xl font-bold text-gray-900 mb-8">Profile Settings</h1>
+                
+                <div id="profileInfo" class="space-y-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="h-20 w-20 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center border-2 border-gray-200">
+                            <img id="avatarPreview" src="" alt="Profile Picture" class="w-full h-full object-cover hidden">
+                            <span id="avatarInitials" class="text-2xl font-medium text-gray-600">UN</span>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Profile Picture</label>
+                            <input type="file" id="avatarInput" accept="image/*" class="mt-1 block w-full text-sm text-gray-500
+                                   file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0
+                                   file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700
+                                   hover:file:bg-blue-100">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-6">
+                        <div>
+                            <label for="fullName" class="block text-sm font-medium text-gray-700">Full Name</label>
+                            <input type="text" id="fullName" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm 
+                                   focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                            <input type="email" id="email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm 
+                                   focus:border-blue-500 focus:ring-blue-500" readonly>
+                        </div>
+
+                        <div>
+                            <label for="bio" class="block text-sm font-medium text-gray-700">Bio</label>
+                            <textarea id="bio" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm 
+                                     focus:border-blue-500 focus:ring-blue-500"></textarea>
+                        </div>
+
+                        <div>
+                            <label for="website" class="block text-sm font-medium text-gray-700">Website</label>
+                            <input type="url" id="website" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm 
+                                   focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <button id="saveProfileBtn" class="cta-button py-2 px-4 rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF5733]">
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+
+                <div id="errorAlert" class="hidden mt-4 p-4 rounded-md bg-red-50 border border-red-200">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p id="errorText" class="text-sm text-red-700"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Initialize Supabase client
+        const supabaseUrl = 'https://qcnqdwylsxgpnoogcuhm.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjbnFkd3lsc3hncG5vb2djdWhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUyNDY4NTEsImV4cCI6MjA2MDgyMjg1MX0.4z2ZSBfJLSSReG5KLZXrEUVN8n2HU1EuSvsy98sPEgY';
+        
+        // Create Supabase client
+        const { createClient } = supabase;
+        const client = createClient(supabaseUrl, supabaseAnonKey);
+        
+        // DOM Elements
+        const profileInfo = document.getElementById('profileInfo');
+        const fullNameInput = document.getElementById('fullName');
+        const emailInput = document.getElementById('email');
+        const bioInput = document.getElementById('bio');
+        const websiteInput = document.getElementById('website');
+        const avatarInput = document.getElementById('avatarInput');
+        const avatarPreview = document.getElementById('avatarPreview');
+        const saveProfileBtn = document.getElementById('saveProfileBtn');
+        const signOutButtons = document.querySelectorAll('.signOutBtn');
+        const errorAlert = document.getElementById('errorAlert');
+        const errorText = document.getElementById('errorText');
+        const headerUserName = document.getElementById('headerUserName');
+        const headerAvatar = document.getElementById('headerAvatar');
+        const profileDropdownButton = document.getElementById('profileDropdownButton');
+        const profileDropdownMenu = document.getElementById('profileDropdownMenu');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const campaignButtons = document.querySelectorAll('a[href="create-campaign.html"]');
+        const headerInitials = document.getElementById('headerInitials');
+        const avatarInitials = document.getElementById('avatarInitials');
+
+        // Mobile Menu Toggle
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Toggle profile dropdown
+        profileDropdownButton.addEventListener('click', () => {
+            profileDropdownMenu.classList.toggle('hidden');
+        });
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', (event) => {
+            if (!profileDropdownButton.contains(event.target)) {
+                profileDropdownMenu.classList.add('hidden');
+            }
+        });
+
+        // Set up campaign buttons to check login status
+        campaignButtons.forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const isLoggedIn = await checkAuth();
+                
+                if (isLoggedIn) {
+                    // User is logged in, proceed to campaign creation
+                    window.location.href = 'create-campaign.html';
+                } else {
+                    // User is not logged in, redirect to login page
+                    // Store the intended destination for redirect after login
+                    localStorage.setItem('redirectUrl', 'create-campaign.html');
+                    window.location.href = 'login.html';
+                }
+            });
+        });
+
+        // Require authentication for this page
+        checkAuth().then(isLoggedIn => {
+            if (!isLoggedIn) {
+                window.location.href = 'login.html';
+            }
+        });
+
+        // Check if user is logged in
+        async function checkAuth() {
+            try {
+                const { data, error } = await client.auth.getUser();
+                
+                if (error || !data.user) {
+                    console.error('Auth error:', error?.message);
+                    return false;
+                }
+                
+                // Update header with user info
+                updateHeaderUserInfo(data.user);
+                return true;
+            } catch (error) {
+                console.error('Auth check failed:', error.message);
+                return false;
+            }
+        }
+        
+        // Update header with user info
+        function updateHeaderUserInfo(user) {
+            // Set user name in header
+            const displayName = user.user_metadata?.full_name || user.email || 'User';
+            headerUserName.textContent = displayName;
+            
+            // Get user initials
+            const initials = getInitials(displayName);
+            headerInitials.textContent = initials;
+            avatarInitials.textContent = initials;
+            
+            // Check if avatar URL is valid (not a blob URL or empty)
+            const avatarUrl = user.user_metadata?.avatar_url;
+            const isValidUrl = avatarUrl && 
+                               avatarUrl.trim() !== '' && 
+                               !avatarUrl.startsWith('blob:');
+            
+            if (isValidUrl) {
+                // Set avatar if available and valid
+                headerAvatar.src = avatarUrl;
+                headerAvatar.classList.remove('hidden');
+                headerInitials.classList.add('hidden');
+                
+                avatarPreview.src = avatarUrl;
+                avatarPreview.classList.remove('hidden');
+                avatarInitials.classList.add('hidden');
+            } else {
+                // If we find an invalid blob URL in metadata, let's fix it
+                if (avatarUrl && avatarUrl.startsWith('blob:')) {
+                    console.log('Found invalid blob URL in user metadata. Will fix on next save.');
+                    // We could automatically fix it here, but for now just log
+                }
+                
+                // Show initials instead
+                headerAvatar.classList.add('hidden');
+                headerInitials.classList.remove('hidden');
+                
+                avatarPreview.classList.add('hidden');
+                avatarInitials.classList.remove('hidden');
+            }
+        }
+        
+        // Generate initials from user name
+        function getInitials(name) {
+            if (!name) return 'UN';
+            
+            // Split the name by spaces, dashes, dots, etc.
+            const parts = name.split(/[\s.-_@]+/);
+            
+            if (parts.length >= 2) {
+                // Get first letter of first and last parts
+                return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+            } else if (parts.length === 1 && parts[0].length >= 2) {
+                // Get first two letters of single name/email
+                return parts[0].substring(0, 2).toUpperCase();
+            } else if (parts.length === 1) {
+                // Get first letter of single name/email
+                return parts[0][0].toUpperCase() + 'N';
+            } else {
+                return 'UN';
+            }
+        }
+        
+        // Load user profile
+        async function loadProfile() {
+            try {
+                const { data, error } = await client.auth.getUser();
+                
+                if (error) {
+                    showError('Failed to load profile. Please try again.');
+                    return;
+                }
+
+                if (!data.user) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                const user = data.user;
+                console.log('User data:', user);
+
+                // Check if we need to fix a blob URL in the metadata
+                if (user.user_metadata?.avatar_url && 
+                    user.user_metadata.avatar_url.startsWith('blob:')) {
+                    
+                    console.log('Fixing invalid blob URL in user metadata');
+                    
+                    // Update the user to remove the invalid blob URL
+                    const { error: updateError } = await client.auth.updateUser({
+                        data: {
+                            ...user.user_metadata,
+                            avatar_url: null // Clear the blob URL
+                        }
+                    });
+                    
+                    if (updateError) {
+                        console.error('Failed to fix blob URL:', updateError);
+                    } else {
+                        console.log('Successfully removed invalid blob URL');
+                    }
+                }
+
+                // Populate form fields
+                emailInput.value = user.email;
+                fullNameInput.value = user.user_metadata?.full_name || '';
+                bioInput.value = user.user_metadata?.bio || '';
+                websiteInput.value = user.user_metadata?.website || '';
+                
+                // Force update header and avatar display
+                updateHeaderUserInfo(user);
+            } catch (error) {
+                console.error('Failed to load profile:', error);
+                showError('Failed to load profile. Please try again.');
+            }
+        }
+
+        // Handle avatar upload preview
+        avatarInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                try {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        // Using FileReader result is safer than blob URLs
+                        const result = e.target.result;
+                        // Preview only - not for storage
+                        avatarPreview.src = result;
+                        avatarPreview.classList.remove('hidden');
+                        avatarInitials.classList.add('hidden');
+                    };
+                    reader.onerror = () => {
+                        console.error('Error reading file');
+                        // Show error if file can't be read
+                        showError('Could not preview image. Please try a different file.');
+                        // Keep showing initials
+                        avatarPreview.classList.add('hidden');
+                        avatarInitials.classList.remove('hidden');
+                    };
+                    reader.readAsDataURL(file);
+                } catch (error) {
+                    console.error('File preview error:', error);
+                    // Show error and keep showing initials
+                    showError('Could not preview image. Please try a different file.');
+                    avatarPreview.classList.add('hidden');
+                    avatarInitials.classList.remove('hidden');
+                }
+            }
+        });
+
+        // Handle profile update
+        saveProfileBtn.addEventListener('click', async () => {
+            saveProfileBtn.disabled = true;
+            
+            try {
+                const updates = {
+                    data: {
+                        full_name: fullNameInput.value.trim(),
+                        bio: bioInput.value.trim(),
+                        website: websiteInput.value.trim()
+                    }
+                };
+
+                // IMPORTANT: Remove the problematic blob URL handling
+                // In a real implementation, you would need to upload the file to storage
+                // and use a proper URL, not a blob URL which causes errors
+                if (avatarInput.files.length > 0) {
+                    // We'll just set a flag that there's a file, but not use blob URL
+                    // In a production app, you would upload to a server/storage
+                    console.log('Avatar file selected, but not using blob URL');
+                    // Instead of using blob URL which causes errors:
+                    // updates.data.avatar_url = URL.createObjectURL(avatarInput.files[0]);
+                    
+                    // For this demo, just use a placeholder image URL
+                    updates.data.avatar_url = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+                }
+
+                const { error } = await client.auth.updateUser(updates);
+
+                if (error) {
+                    console.error('Update profile error:', error);
+                    showError('Failed to update profile. Please try again.');
+                } else {
+                    showError('Profile updated successfully!', false);
+                    
+                    // Update header with new user info
+                    const { data } = await client.auth.getUser();
+                    if (data?.user) {
+                        updateHeaderUserInfo(data.user);
+                    }
+                }
+            } catch (error) {
+                console.error('Update profile error:', error);
+                showError('Failed to update profile. Please try again.');
+            } finally {
+                saveProfileBtn.disabled = false;
+            }
+        });
+
+        // Handle sign out
+        signOutButtons.forEach(btn => {
+            btn.addEventListener('click', async () => {
+                try {
+                    const { error } = await client.auth.signOut();
+                    
+                    if (error) {
+                        console.error('Sign out error:', error);
+                        showError('Failed to sign out. Please try again.');
+                    } else {
+                        // Clear login state
+                        localStorage.removeItem('isLoggedIn');
+                        localStorage.removeItem('userEmail');
+                        
+                        window.location.href = 'login.html';
+                    }
+                } catch (error) {
+                    console.error('Sign out error:', error);
+                    showError('Failed to sign out. Please try again.');
+                }
+            });
+        });
+
+        function showError(message, isError = true) {
+            errorText.textContent = message;
+            errorAlert.classList.remove('hidden');
+            
+            if (!isError) {
+                errorAlert.classList.remove('bg-red-50', 'border-red-200');
+                errorAlert.classList.add('bg-green-50', 'border-green-200');
+                errorText.classList.remove('text-red-700');
+                errorText.classList.add('text-green-700');
+            } else {
+                errorAlert.classList.remove('bg-green-50', 'border-green-200');
+                errorAlert.classList.add('bg-red-50', 'border-red-200');
+                errorText.classList.remove('text-green-700');
+                errorText.classList.add('text-red-700');
+            }
+
+            setTimeout(() => {
+                errorAlert.classList.add('hidden');
+            }, 5000);
+        }
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProfile();
+        });
+    </script>
+</body>
+</html> 

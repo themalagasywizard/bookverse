@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Start a Campaign - BookVerse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Georgia&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        h1, h2, h3, h4, h5, h6, .font-serif {
+            font-family: 'Georgia', serif;
+        }
+        .cta-button {
+            background-color: #FF5733;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+        .cta-button:hover {
+            background-color: #E04C2D;
+        }
+        .cta-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .step-container {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .step-container.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .progress-bar {
+            transition: width 0.3s ease-out;
+        }
+        .drag-drop-zone {
+            border: 2px dashed #ccc;
+            transition: border-color 0.3s ease;
+        }
+        .drag-drop-zone.drag-over {
+            border-color: #FF5733;
+        }
+        /* Hide PDF.js viewer */
+        #pdf-preview::-webkit-scrollbar {
+            display: none;
+        }
+        #pdf-preview {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-3 max-w-6xl flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-bold font-serif text-[#333]">
+                { B<span class="text-[#FF5733]">V</span> } <span class="hidden sm:inline">BookVerse</span>
+            </a>
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="index.html" class="text-gray-600 hover:text-[#FF5733] hover:underline">Home</a>
+                <a href="index.html#campaigns" class="text-gray-600 hover:text-[#FF5733] hover:underline">Browse Campaigns</a>
+                <a href="index.html#how-it-works" class="text-gray-600 hover:text-[#FF5733] hover:underline">How It Works</a>
+                <a href="index.html#for-authors" class="text-gray-600 hover:text-[#FF5733] hover:underline">For Authors</a>
+                <button id="save-draft" class="px-4 py-2 rounded-full text-gray-600 border border-gray-300 hover:bg-gray-100 transition-colors duration-300">
+                    Save Draft
+                </button>
+            </div>
+            <!-- Mobile Menu Button -->
+            <div class="md:hidden flex items-center">
+                <button id="mobile-menu-button" class="text-gray-600 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+        </nav>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="md:hidden hidden bg-white py-4 px-6 absolute top-full left-0 w-full shadow-lg">
+            <a href="index.html" class="block py-2 text-gray-600 hover:text-[#FF5733]">Home</a>
+            <a href="index.html#campaigns" class="block py-2 text-gray-600 hover:text-[#FF5733]">Browse Campaigns</a>
+            <a href="index.html#how-it-works" class="block py-2 text-gray-600 hover:text-[#FF5733]">How It Works</a>
+            <a href="index.html#for-authors" class="block py-2 text-gray-600 hover:text-[#FF5733]">For Authors</a>
+            <button id="save-draft-mobile" class="mt-4 w-full px-4 py-2 rounded-full text-gray-600 border border-gray-300 hover:bg-gray-100 transition-colors duration-300">
+                Save Draft
+            </button>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Progress Bar -->
+        <div class="mb-8">
+            <div class="flex justify-between mb-2">
+                <span class="text-sm text-gray-600" id="progress-text">Step 1 of 4: Upload PDF</span>
+                <span class="text-sm text-gray-600" id="progress-percentage">25%</span>
+            </div>
+            <div class="h-2 bg-gray-200 rounded-full">
+                <div class="progress-bar h-full bg-[#FF5733] rounded-full" style="width: 25%"></div>
+            </div>
+        </div>
+
+        <!-- Step Containers -->
+        <div id="step-containers" class="space-y-8">
+            <!-- Step 1: Upload PDF -->
+            <div id="step-1" class="step-container visible bg-white rounded-lg shadow-md p-8">
+                <h2 class="text-2xl font-serif font-bold mb-4">Upload Your Book PDF</h2>
+                <p class="text-gray-600 mb-6">Upload a print-ready PDF. We'll check it for compatibility in the next step.</p>
+                
+                <div id="upload-zone" class="drag-drop-zone rounded-lg p-8 text-center cursor-pointer">
+                    <input type="file" id="pdf-input" class="hidden" accept=".pdf">
+                    <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    <p class="text-gray-600 mb-2">Drop your PDF here or click to upload</p>
+                    <p class="text-sm text-gray-500">Maximum file size: 50MB</p>
+                </div>
+
+                <div id="upload-status" class="hidden mt-4">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span class="text-gray-700" id="file-name"></span>
+                        <span class="text-gray-500" id="file-size"></span>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex justify-between">
+                    <button class="px-6 py-2 rounded-full text-gray-600 border border-gray-300 hover:bg-gray-100" disabled>Back</button>
+                    <button id="next-step-1" class="cta-button px-6 py-2 rounded-full font-semibold" disabled>Next</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Validate PDF -->
+            <div id="step-2" class="step-container hidden bg-white rounded-lg shadow-md p-8">
+                <h2 class="text-2xl font-serif font-bold mb-4">Validate Print-Readiness</h2>
+                <p class="text-gray-600 mb-6">We're checking your PDF for print compatibility.</p>
+
+                <div class="space-y-6">
+                    <!-- Validation Results -->
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-semibold mb-4">Validation Results</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    <span>Page Size: A5 (148 × 210 mm)</span>
+                                </div>
+                                <span class="text-green-500">OK</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    <span>Margins: 0.75 inches</span>
+                                </div>
+                                <span class="text-green-500">OK</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                    </svg>
+                                    <span>Font Embedding</span>
+                                </div>
+                                <span class="text-yellow-500">2 fonts not embedded</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    <span>Resolution: 300 DPI</span>
+                                </div>
+                                <span class="text-green-500">OK</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PDF Adjustment Tools -->
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-semibold mb-4">PDF Adjustments</h3>
+                        
+                        <!-- Page Size -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Page Size</label>
+                            <select class="w-full p-2 border border-gray-300 rounded-md focus:ring-[#FF5733] focus:border-[#FF5733]">
+                                <option value="a5">A5 (148 × 210 mm)</option>
+                                <option value="a4">A4 (210 × 297 mm)</option>
+                                <option value="letter">US Letter (216 × 279 mm)</option>
+                            </select>
+                        </div>
+
+                        <!-- Margins -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Margins</label>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Top & Bottom</label>
+                                    <input type="range" min="0.5" max="2" step="0.25" value="0.75" 
+                                           class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                    <div class="text-xs text-gray-500 mt-1">0.75 inches</div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Left & Right</label>
+                                    <input type="range" min="0.5" max="2" step="0.25" value="0.75"
+                                           class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                    <div class="text-xs text-gray-500 mt-1">0.75 inches</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Font Embedding Warning -->
+                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-yellow-700">
+                                        The following fonts need to be embedded:
+                                    </p>
+                                    <ul class="mt-2 text-sm text-yellow-700 list-disc list-inside">
+                                        <li>Arial</li>
+                                        <li>Times New Roman</li>
+                                    </ul>
+                                    <a href="#" class="text-sm text-yellow-700 underline hover:text-yellow-600 mt-2 inline-block">
+                                        Learn how to embed fonts
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button id="recheck-pdf" class="w-full cta-button px-4 py-2 rounded-md font-semibold text-sm">
+                            Re-check PDF
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex justify-between">
+                    <button id="back-step-2" class="px-6 py-2 rounded-full text-gray-600 border border-gray-300 hover:bg-gray-100">Back</button>
+                    <button id="next-step-2" class="cta-button px-6 py-2 rounded-full font-semibold">Next</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Book Metadata -->
+            <div id="step-3" class="step-container hidden bg-white rounded-lg shadow-md p-8">
+                <h2 class="text-2xl font-serif font-bold mb-4">Enter Book Details</h2>
+                <p class="text-gray-600 mb-6">Provide details to create your campaign page.</p>
+
+                <form class="space-y-6" id="metadata-form">
+                    <!-- Basic Info -->
+                    <div class="space-y-4">
+                        <div>
+                            <label for="book-title" class="block text-sm font-medium text-gray-700 mb-1">Book Title</label>
+                            <input type="text" id="book-title" name="title" required
+                                   class="w-full p-2 border border-gray-300 rounded-md focus:ring-[#FF5733] focus:border-[#FF5733]"
+                                   placeholder="The Lost Tale">
+                        </div>
+
+                        <div>
+                            <label for="author-name" class="block text-sm font-medium text-gray-700 mb-1">Author Name</label>
+                            <input type="text" id="author-name" name="author_name" required
+                                   class="w-full p-2 border border-gray-300 rounded-md focus:ring-[#FF5733] focus:border-[#FF5733]"
+                                   placeholder="Jane Doe">
+                        </div>
+
+                        <div>
+                            <label for="book-summary" class="block text-sm font-medium text-gray-700 mb-1">
+                                Book Summary
+                                <span class="text-gray-500 text-xs" id="summary-count">(0/500 words)</span>
+                            </label>
+                            <textarea id="book-summary" name="summary" rows="4" required
+                                      class="w-full p-2 border border-gray-300 rounded-md focus:ring-[#FF5733] focus:border-[#FF5733]"
+                                      placeholder="Write a compelling summary of your book..."></textarea>
+                        </div>
+
+                        <div>
+                            <label for="book-genre" class="block text-sm font-medium text-gray-700 mb-1">Genre</label>
+                            <select id="book-genre" name="genre" required
+                                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-[#FF5733] focus:border-[#FF5733]">
+                                <option value="">Select a genre</option>
+                                <option value="fiction">Fiction</option>
+                                <option value="non-fiction">Non-Fiction</option>
+                                <option value="mystery">Mystery</option>
+                                <option value="sci-fi">Science Fiction</option>
+                                <option value="fantasy">Fantasy</option>
+                                <option value="romance">Romance</option>
+                                <option value="thriller">Thriller</option>
+                                <option value="horror">Horror</option>
+                                <option value="biography">Biography</option>
+                                <option value="history">History</option>
+                                <option value="self-help">Self-Help</option>
+                                <option value="children">Children's</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Publishing Details -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold">Publishing Details</h3>
+                        
+                        <div>
+                            <label for="binding-type" class="block text-sm font-medium text-gray-700 mb-1">Binding Type</label>
+                            <select id="binding-type" name="binding" required
+                                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-[#FF5733] focus:border-[#FF5733]">
+                                <option value="">Select binding type</option>
+                                <option value="hardcover">Hardcover</option>
+                                <option value="paperback">Paperback</option>
+                                <option value="spiral">Spiral Bound</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="page-count" class="block text-sm font-medium text-gray-700 mb-1">Page Count</label>
+                            <input type="number" id="page-count" name="pages" required min="24" max="1000"
+                                   class="w-full p-2 border border-gray-300 rounded-md focus:ring-[#FF5733] focus:border-[#FF5733]"
+                                   value="200">
+                            <p class="text-xs text-gray-500 mt-1">Minimum 24 pages, maximum 1000 pages</p>
+                        </div>
+                    </div>
+
+                    <!-- Campaign Details -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold">Campaign Details</h3>
+
+                        <div>
+                            <label for="pre-purchase-price" class="block text-sm font-medium text-gray-700 mb-1">Pre-Purchase Price</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-2 text-gray-500">$</span>
+                                <input type="number" id="pre-purchase-price" name="price" required min="10" step="0.01"
+                                       class="w-full pl-8 p-2 border border-gray-300 rounded-md focus:ring-[#FF5733] focus:border-[#FF5733]"
+                                       value="20">
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Minimum price: $10.00</p>
+                        </div>
+
+                        <div>
+                            <label for="min-purchases" class="block text-sm font-medium text-gray-700 mb-1">Minimum Pre-Purchases</label>
+                            <input type="number" id="min-purchases" name="min_purchases" required min="50" step="10"
+                                   class="w-full p-2 border border-gray-300 rounded-md focus:ring-[#FF5733] focus:border-[#FF5733]"
+                                   value="100">
+                            <p class="text-xs text-gray-500 mt-1">Minimum 50 pre-purchases required</p>
+                        </div>
+
+                        <div>
+                            <label for="campaign-duration" class="block text-sm font-medium text-gray-700 mb-1">Campaign Duration</label>
+                            <select id="campaign-duration" name="duration" required
+                                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-[#FF5733] focus:border-[#FF5733]">
+                                <option value="30">30 days</option>
+                                <option value="60">60 days</option>
+                                <option value="90">90 days</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Cover Image -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Cover Image</label>
+                        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                            <div class="space-y-1 text-center">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                <div class="flex text-sm text-gray-600">
+                                    <label for="cover-image" class="relative cursor-pointer bg-white rounded-md font-medium text-[#FF5733] hover:text-[#E04C2D] focus-within:outline-none">
+                                        <span>Upload a file</span>
+                                        <input id="cover-image" name="cover" type="file" class="sr-only" accept="image/jpeg,image/png">
+                                    </label>
+                                    <p class="pl-1">or drag and drop</p>
+                                </div>
+                                <p class="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+                            </div>
+                        </div>
+                        <div id="cover-preview" class="hidden mt-4">
+                            <img src="" alt="Cover preview" class="max-h-48 rounded-lg mx-auto">
+                        </div>
+                    </div>
+                </form>
+
+                <div class="mt-8 flex justify-between">
+                    <button id="back-step-3" class="px-6 py-2 rounded-full text-gray-600 border border-gray-300 hover:bg-gray-100">Back</button>
+                    <button id="next-step-3" class="cta-button px-6 py-2 rounded-full font-semibold">Next</button>
+                </div>
+            </div>
+
+            <!-- Step 4: Cost Estimation -->
+            <div id="step-4" class="step-container hidden bg-white rounded-lg shadow-md p-8">
+                <h2 class="text-2xl font-serif font-bold mb-4">Estimate Printing Costs</h2>
+                <p class="text-gray-600 mb-6">Review estimated printing costs and your potential royalties based on your settings.</p>
+
+                <div class="space-y-6">
+                    <!-- Cost Breakdown -->
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-semibold mb-4">Cost Breakdown</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Printing Cost per Book</span>
+                                <span class="font-semibold" id="print-cost">$10.00</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Shipping Cost per Book</span>
+                                <span class="font-semibold" id="ship-cost">$2.00</span>
+                            </div>
+                            <div class="flex justify-between items-center pt-2 border-t border-gray-200">
+                                <span class="text-gray-600">Total Cost per Book</span>
+                                <span class="font-semibold" id="total-cost">$12.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Royalty Calculation -->
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-semibold mb-4">Your Royalties</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Pre-Purchase Price</span>
+                                <span class="font-semibold" id="price">$20.00</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Platform Fee (10%)</span>
+                                <span class="font-semibold text-gray-500" id="platform-fee">-$2.00</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Printing + Shipping</span>
+                                <span class="font-semibold text-gray-500" id="total-costs">-$12.00</span>
+                            </div>
+                            <div class="flex justify-between items-center pt-2 border-t border-gray-200">
+                                <span class="text-gray-600">Your Royalty per Book</span>
+                                <span class="font-semibold text-[#FF5733]" id="royalty">$6.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Campaign Earnings -->
+                    <div class="bg-[#FF5733] bg-opacity-10 p-6 rounded-lg">
+                        <div class="text-center">
+                            <h3 class="font-semibold mb-2">Potential Campaign Earnings</h3>
+                            <div class="flex justify-center items-baseline space-x-2">
+                                <span class="text-3xl font-bold text-[#FF5733]" id="total-earnings">$600</span>
+                                <span class="text-gray-600" id="books-count">for 100 books</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-2">If your campaign reaches its goal</p>
+                        </div>
+                    </div>
+
+                    <!-- Warning for Low/Negative Royalty -->
+                    <div id="royalty-warning" class="hidden bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-yellow-700">
+                                    Your royalty per book is too low. Consider:
+                                </p>
+                                <ul class="mt-2 text-sm text-yellow-700 list-disc list-inside">
+                                    <li>Increasing the pre-purchase price</li>
+                                    <li>Reducing page count if possible</li>
+                                    <li>Choosing a different binding option</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex justify-between">
+                    <button id="back-step-4" class="px-6 py-2 rounded-full text-gray-600 border border-gray-300 hover:bg-gray-100">Back</button>
+                    <button id="create-campaign" class="cta-button px-6 py-2 rounded-full font-semibold">Create Campaign</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-[#333] text-gray-300 py-12 mt-16">
+        <div class="container mx-auto px-6 max-w-6xl">
+            <div class="grid md:grid-cols-3 gap-8 text-center md:text-left">
+                <div>
+                    <a href="index.html" class="text-2xl font-bold font-serif text-white mb-2 inline-block">
+                        { B<span class="text-[#FF5733]">V</span> } BookVerse
+                    </a>
+                    <p class="text-sm text-gray-400">Crowdfund books, support authors, read new stories.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-white mb-3">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover:text-white hover:underline text-sm">About Us</a></li>
+                        <li><a href="#" class="hover:text-white hover:underline text-sm">FAQ</a></li>
+                        <li><a href="#" class="hover:text-white hover:underline text-sm">Terms of Service</a></li>
+                        <li><a href="#" class="hover:text-white hover:underline text-sm">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-white mb-3">Follow Us</h4>
+                    <div class="flex justify-center md:justify-start space-x-4">
+                        <a href="#" aria-label="Twitter" class="text-gray-400 hover:text-white">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"></path>
+                            </svg>
+                        </a>
+                        <a href="#" aria-label="Instagram" class="text-gray-400 hover:text-white">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.024.06 1.378.06 3.808s-.012 2.784-.06 3.808c-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.024.048-1.378.06-3.808.06s-2.784-.013-3.808-.06c-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.048-1.024-.06-1.378-.06-3.808s.012-2.784.06-3.808c.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.023.047 1.351.058 3.807.058h.468c2.456 0 2.784-.011 3.807-.058.975-.045 1.504-.207 1.857-.344.467-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.047-1.023.058-1.351.058-3.807v-.468c0-2.456-.011-2.784-.058-3.807-.045-.975-.207-1.504-.344-1.857-.182-.467-.399-.8-.748-1.15-.35-.35-.683-.566-1.15-.748-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 100 10.27 5.135 5.135 0 000-10.27zm0 1.802a3.333 3.333 0 110 6.666 3.333 3.333 0 010-6.666zm5.338-3.205a1.2 1.2 0 100 2.4 1.2 1.2 0 000-2.4z" clip-rule="evenodd"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8 pt-8 border-t border-gray-700 text-center text-sm text-gray-500">
+                © 2024 BookVerse. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Global variables for uploaded file URLs
+        let uploadedPdfUrl = null;
+        let uploadedCoverUrl = null;
+
+        // Check authentication status
+        async function checkAuth() {
+            try {
+                console.log('Checking authentication...');
+                const { user, error } = await window.getUser();
+                if (!user) {
+                    console.log('No user found, redirecting to login');
+                    // Redirect to login page with return URL
+                    const returnUrl = encodeURIComponent(window.location.pathname);
+                    window.location.href = `login.html?redirect=${returnUrl}`;
+                } else {
+                    console.log('User authenticated:', user.id);
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                window.location.href = 'login.html';
+            }
+        }
+
+        // File upload handling
+        async function handlePdfUpload(file) {
+            console.log('Starting PDF upload with file:', file.name, file.size, file.type);
+            
+            try {
+                console.log('Calling uploadFile function...');
+                const { url, error } = await window.uploadFile('books-pdfs', 'uploads', file);
+                
+                console.log('PDF upload result:', { url, error });
+                
+                if (error) {
+                    console.log('Error in PDF upload response:', error);
+                    throw error;
+                }
+                
+                if (!url) {
+                    throw new Error('No URL returned from upload');
+                }
+
+                // Store the URL globally
+                uploadedPdfUrl = url;
+                console.log('PDF uploaded successfully. URL stored globally:', uploadedPdfUrl);
+                
+                // Update UI elements
+                const fileNameDisplay = document.getElementById('selected-pdf-name');
+                const uploadStatus = document.getElementById('upload-status');
+                const nextButton = document.getElementById('next-step-1');
+                
+                if (fileNameDisplay) {
+                    fileNameDisplay.textContent = file.name;
+                }
+                
+                if (uploadStatus) {
+                    uploadStatus.classList.remove('hidden');
+                    uploadStatus.textContent = 'PDF uploaded successfully!';
+                    uploadStatus.classList.remove('text-red-500');
+                    uploadStatus.classList.add('text-green-500');
+                }
+                
+                // Enable the next button
+                if (nextButton) {
+                    nextButton.disabled = false;
+                    nextButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                    nextButton.classList.add('hover:bg-[#E04C2D]');
+                }
+                
+                return url;
+            } catch (error) {
+                console.log('PDF upload error:', error);
+                
+                // Update UI to show error
+                const uploadStatus = document.getElementById('upload-status');
+                const nextButton = document.getElementById('next-step-1');
+                
+                if (uploadStatus) {
+                    uploadStatus.classList.remove('hidden');
+                    uploadStatus.textContent = 'Error uploading PDF. Please try again.';
+                    uploadStatus.classList.remove('text-green-500');
+                    uploadStatus.classList.add('text-red-500');
+                }
+                
+                // Disable next button
+                if (nextButton) {
+                    nextButton.disabled = true;
+                    nextButton.classList.add('opacity-50', 'cursor-not-allowed');
+                    nextButton.classList.remove('hover:bg-[#E04C2D]');
+                }
+                
+                throw error;
+            }
+        }
+
+        async function handleCoverUpload(file) {
+            try {
+                console.log('Starting cover image upload with file:', file.name, file.size, file.type);
+                
+                // Validate file type and size first
+                if (!file.type.startsWith('image/')) {
+                    throw new Error('Please upload an image file (JPEG, PNG, etc.)');
+                }
+                
+                if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                    throw new Error('Image size must be less than 5MB');
+                }
+                
+                console.log('Calling uploadFile function...');
+                const { url, error } = await window.uploadFile('books-covers', 'uploads', file);
+                
+                console.log('Cover upload result:', { url, error });
+                
+                if (error) {
+                    // Check if it's a bucket not found error
+                    if (error.message && error.message.includes('bucket "books-covers" does not exist')) {
+                        throw new Error('Cover upload system is not properly configured. Please contact support.');
+                    }
+                    throw error;
+                }
+                
+                if (!url) {
+                    throw new Error('Failed to get upload URL');
+                }
+
+                // Store the URL globally
+                uploadedCoverUrl = url;
+                console.log('Cover uploaded successfully. URL stored globally:', uploadedCoverUrl);
+                
+                // Update UI to show success
+                const coverPreview = document.getElementById('cover-preview');
+                const coverStatus = document.getElementById('cover-status');
+                
+                if (coverPreview) {
+                    coverPreview.classList.remove('hidden');
+                    const img = coverPreview.querySelector('img');
+                    if (img) {
+                        img.src = URL.createObjectURL(file);
+                    }
+                }
+                
+                if (coverStatus) {
+                    coverStatus.textContent = 'Cover image uploaded successfully!';
+                    coverStatus.classList.remove('text-red-500');
+                    coverStatus.classList.add('text-green-500');
+                    coverStatus.classList.remove('hidden');
+                }
+                
+                return url;
+            } catch (error) {
+                console.error('Cover upload error:', error);
+                
+                // Update UI to show error
+                const coverStatus = document.getElementById('cover-status');
+                if (coverStatus) {
+                    coverStatus.textContent = error.message || 'Failed to upload cover image. Please try again.';
+                    coverStatus.classList.remove('text-green-500');
+                    coverStatus.classList.add('text-red-500');
+                    coverStatus.classList.remove('hidden');
+                }
+                
+                // Clear the file input
+                const coverInput = document.getElementById('cover-image');
+                if (coverInput) {
+                    coverInput.value = '';
+                }
+                
+                throw error;
+            }
+        }
+
+        // Function to handle file selection
+        function handleFiles(files, fileType) {
+            if (!files || files.length === 0) {
+                console.log('No files selected');
+                return;
+            }
+
+            const file = files[0];
+            const fileName = file.name; // Define fileName from the file object
+            console.log('Processing file:', fileName);
+
+            // Validate file type
+            if (fileType === 'pdf') {
+                if (file.type !== 'application/pdf') {
+                    alert('Please upload a PDF file.');
+                    return;
+                }
+                
+                // Update UI to show selected file
+                const fileNameDisplay = document.getElementById('selected-pdf-name');
+                if (fileNameDisplay) {
+                    fileNameDisplay.textContent = fileName;
+                }
+                
+                // Handle PDF upload
+                handlePdfUpload(file);
+            } else if (fileType === 'cover') {
+                if (!file.type.startsWith('image/')) {
+                    alert('Please upload an image file for the cover.');
+                    return;
+                }
+                
+                // Update UI to show selected cover
+                const coverPreview = document.getElementById('cover-preview');
+                if (coverPreview) {
+                    coverPreview.src = URL.createObjectURL(file);
+                    coverPreview.style.display = 'block';
+                }
+                
+                // Handle cover upload
+                handleCoverUpload(file);
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Save campaign draft
+        async function handleSaveDraft() {
+            try {
+                console.log('Saving draft...');
+                const campaignData = {
+                    title: document.getElementById('book-title').value,
+                    description: document.getElementById('book-summary').value,
+                    genre: document.getElementById('book-genre').value,
+                    page_count: parseInt(document.getElementById('page-count').value),
+                    binding_type: document.getElementById('binding-type').value,
+                    cover_image_url: uploadedCoverUrl,
+                    pdf_url: uploadedPdfUrl,
+                    price: parseFloat(document.getElementById('pre-purchase-price').value),
+                    min_purchases: parseInt(document.getElementById('min-purchases').value),
+                    duration_days: parseInt(document.getElementById('campaign-duration').value),
+                    status: 'draft',
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                };
+
+                console.log('Draft data:', campaignData);
+                const { success, error } = await window.saveCampaignDraft(campaignData);
+                if (error) throw error;
+
+                alert('Draft saved successfully!');
+            } catch (error) {
+                console.error('Error saving draft:', error);
+                alert('Failed to save draft. Please try again.');
+            }
+        }
+
+        // Create campaign
+        async function handleCreateCampaign() {
+            try {
+                console.log('Campaign creation initiated');
+                
+                // Show loading state
+                const createButton = document.getElementById('create-campaign');
+                const originalText = createButton.textContent;
+                createButton.textContent = 'Creating Campaign...';
+                createButton.disabled = true;
+
+                // Log authentication status first
+                console.log('Checking authentication...');
+                const isAuth = await window.isAuthenticated();
+                console.log('Authentication status:', isAuth);
+
+                if (!isAuth) {
+                    throw new Error('You must be logged in to create a campaign');
+                }
+
+                // Get and validate all form fields
+                console.log('Collecting form data...');
+                const formData = {
+                    title: document.getElementById('book-title').value.trim(),
+                    description: document.getElementById('book-summary').value.trim(),
+                    genre: document.getElementById('book-genre').value,
+                    pageCount: document.getElementById('page-count').value,
+                    bindingType: document.getElementById('binding-type').value,
+                    price: document.getElementById('pre-purchase-price').value,
+                    minPurchases: document.getElementById('min-purchases').value,
+                    durationDays: document.getElementById('campaign-duration').value,
+                    authorName: document.getElementById('author-name').value.trim()
+                };
+
+                // Log form data for debugging
+                console.log('Collected form data:', formData);
+
+                // Validate all required fields
+                const missingFields = [];
+                Object.entries(formData).forEach(([key, value]) => {
+                    if (!value) missingFields.push(key);
+                });
+
+                if (missingFields.length > 0) {
+                    throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+                }
+
+                // Check for uploaded files
+                console.log('Checking uploaded files...');
+                console.log('PDF URL:', uploadedPdfUrl);
+                console.log('Cover URL:', uploadedCoverUrl);
+                
+                if (!uploadedPdfUrl) {
+                    throw new Error('Please upload a PDF file');
+                }
+                if (!uploadedCoverUrl) {
+                    throw new Error('Please upload a cover image');
+                }
+
+                // Format the campaign data to match database schema
+                console.log('Formatting campaign data...');
+                const campaignData = {
+                    title: formData.title,
+                    description: formData.description,
+                    genre: formData.genre,
+                    page_count: String(formData.pageCount),
+                    binding_type: formData.bindingType,
+                    cover_image_url: uploadedCoverUrl,
+                    pdf_url: uploadedPdfUrl,
+                    price: Number(formData.price).toFixed(2),
+                    min_purchases: parseInt(formData.minPurchases),
+                    duration_days: parseInt(formData.durationDays),
+                    author_name: formData.authorName,
+                    status: 'pending'
+                };
+
+                // Log the formatted data
+                console.log('Formatted campaign data:', campaignData);
+
+                // Verify createCampaign function exists
+                if (typeof window.createCampaign !== 'function') {
+                    console.error('createCampaign function not found');
+                    throw new Error('Campaign creation functionality not available');
+                }
+
+                // Create the campaign
+                console.log('Calling createCampaign function...');
+                const result = await window.createCampaign(campaignData);
+                console.log('Campaign creation result:', result);
+
+                if (!result) {
+                    console.error('No result returned from createCampaign');
+                    throw new Error('No response from server');
+                }
+
+                if (!result.success || result.error) {
+                    console.error('Campaign creation failed:', result.error, result.details);
+                    throw new Error(result.error || 'Failed to create campaign');
+                }
+
+                if (!result.data) {
+                    throw new Error('No campaign data returned from server');
+                }
+
+                console.log('Campaign created successfully:', result.data);
+                alert('Campaign created successfully!');
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Error creating campaign:', {
+                    message: error.message,
+                    stack: error.stack,
+                    error: error
+                });
+                alert(`Failed to create campaign: ${error.message}`);
+            } finally {
+                // Reset button state
+                const createButton = document.getElementById('create-campaign');
+                createButton.textContent = originalText || 'Create Campaign';
+                createButton.disabled = false;
+            }
+        }
+
+        // Initialize everything when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM content loaded, initializing campaign creation page');
+            
+            // Check authentication status
+            checkAuth();
+            
+            // Set up event listeners for file uploads
+            const pdfInput = document.getElementById('pdf-input');
+            const coverInput = document.getElementById('cover-image');
+
+            if (pdfInput) {
+                pdfInput.addEventListener('change', function(e) {
+                    console.log('PDF input change event triggered');
+                    handleFiles(e.target.files, 'pdf');
+                });
+            }
+
+            if (coverInput) {
+                coverInput.addEventListener('change', function(e) {
+                    console.log('Cover input change event triggered');
+                    handleFiles(e.target.files, 'cover');
+                });
+            }
+            
+            // Set up drag and drop for PDF
+            const uploadZone = document.getElementById('upload-zone');
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('drag-over');
+            });
+
+            uploadZone.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('drag-over');
+            });
+
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('drag-over');
+                const file = e.dataTransfer.files[0];
+                if (file) {
+                    document.getElementById('pdf-input').files = e.dataTransfer.files;
+                    handleFiles([file], 'pdf');
+                }
+            });
+
+            uploadZone.addEventListener('click', () => {
+                document.getElementById('pdf-input').click();
+            });
+            
+            // Set up other event listeners
+            document.getElementById('save-draft').addEventListener('click', handleSaveDraft);
+            document.getElementById('save-draft-mobile').addEventListener('click', handleSaveDraft);
+            
+            // Navigation between steps
+            const step1 = document.getElementById('step-1');
+            const step2 = document.getElementById('step-2');
+            const step3 = document.getElementById('step-3');
+            const step4 = document.getElementById('step-4');
+            const nextStep1Button = document.getElementById('next-step-1');
+            const backStep2Button = document.getElementById('back-step-2');
+            const backStep3Button = document.getElementById('back-step-3');
+            const backStep4Button = document.getElementById('back-step-4');
+            const nextStep2Button = document.getElementById('next-step-2');
+            const nextStep3Button = document.getElementById('next-step-3');
+            const progressBar = document.querySelector('.progress-bar');
+            const progressText = document.getElementById('progress-text');
+            const progressPercentage = document.getElementById('progress-percentage');
+            
+            nextStep1Button.addEventListener('click', () => {
+                step1.classList.remove('visible');
+                step1.classList.add('hidden');
+                step2.classList.remove('hidden');
+                setTimeout(() => step2.classList.add('visible'), 50);
+                progressBar.style.width = '50%';
+                progressText.textContent = 'Step 2 of 4: Validate PDF';
+                progressPercentage.textContent = '50%';
+            });
+
+            backStep2Button.addEventListener('click', () => {
+                step2.classList.remove('visible');
+                setTimeout(() => {
+                    step2.classList.add('hidden');
+                    step1.classList.remove('hidden');
+                    step1.classList.add('visible');
+                }, 300);
+                progressBar.style.width = '25%';
+                progressText.textContent = 'Step 1 of 4: Upload PDF';
+                progressPercentage.textContent = '25%';
+            });
+            
+            nextStep2Button.addEventListener('click', () => {
+                step2.classList.remove('visible');
+                step2.classList.add('hidden');
+                step3.classList.remove('hidden');
+                setTimeout(() => step3.classList.add('visible'), 50);
+                progressBar.style.width = '75%';
+                progressText.textContent = 'Step 3 of 4: Book Details';
+                progressPercentage.textContent = '75%';
+            });
+
+            backStep3Button.addEventListener('click', () => {
+                step3.classList.remove('visible');
+                setTimeout(() => {
+                    step3.classList.add('hidden');
+                    step2.classList.remove('hidden');
+                    step2.classList.add('visible');
+                }, 300);
+                progressBar.style.width = '50%';
+                progressText.textContent = 'Step 2 of 4: Validate PDF';
+                progressPercentage.textContent = '50%';
+            });
+            
+            nextStep3Button.addEventListener('click', () => {
+                if (document.getElementById('metadata-form').checkValidity()) {
+                    step3.classList.remove('visible');
+                    step3.classList.add('hidden');
+                    step4.classList.remove('hidden');
+                    setTimeout(() => step4.classList.add('visible'), 50);
+                    progressBar.style.width = '100%';
+                    progressText.textContent = 'Step 4 of 4: Cost Estimation';
+                    progressPercentage.textContent = '100%';
+                    updateCostEstimates();
+                } else {
+                    // Trigger HTML5 form validation
+                    const submitButton = document.createElement('button');
+                    submitButton.type = 'submit';
+                    document.getElementById('metadata-form').appendChild(submitButton);
+                    submitButton.click();
+                    submitButton.remove();
+                }
+            });
+            
+            backStep4Button.addEventListener('click', () => {
+                step4.classList.remove('visible');
+                setTimeout(() => {
+                    step4.classList.add('hidden');
+                    step3.classList.remove('hidden');
+                    step3.classList.add('visible');
+                }, 300);
+                progressBar.style.width = '75%';
+                progressText.textContent = 'Step 3 of 4: Book Details';
+                progressPercentage.textContent = '75%';
+            });
+            
+            // Set up form submission handlers
+            document.getElementById('metadata-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+            });
+            
+            document.getElementById('create-campaign').addEventListener('click', (e) => {
+                e.preventDefault();
+                handleCreateCampaign();
+            });
+            
+            // Set up summary word count
+            const summaryField = document.getElementById('book-summary');
+            const summaryCount = document.getElementById('summary-count');
+            
+            summaryField.addEventListener('input', () => {
+                const words = summaryField.value.trim().split(/\s+/).length;
+                summaryCount.textContent = `(${words}/500 words)`;
+                if (words > 500) {
+                    summaryField.value = summaryField.value
+                        .split(/\s+/)
+                        .slice(0, 500)
+                        .join(' ');
+                }
+            });
+            
+            // Set up cost estimations
+            function updateCostEstimates() {
+                const bindingType = document.getElementById('binding-type').value;
+                const pageCount = parseInt(document.getElementById('page-count').value);
+                const price = parseFloat(document.getElementById('pre-purchase-price').value);
+                const minPurchases = parseInt(document.getElementById('min-purchases').value);
+
+                // Mock API calculation (replace with actual Lulu API call)
+                const printCost = bindingType === 'hardcover' ? 10 : 8;
+                const shipCost = 2;
+                const totalCost = printCost + shipCost;
+                const platformFee = price * 0.1;
+                const royalty = price - platformFee - totalCost;
+                const totalEarnings = royalty * minPurchases;
+
+                // Update display
+                document.getElementById('print-cost').textContent = `$${printCost.toFixed(2)}`;
+                document.getElementById('ship-cost').textContent = `$${shipCost.toFixed(2)}`;
+                document.getElementById('total-cost').textContent = `$${totalCost.toFixed(2)}`;
+                document.getElementById('price').textContent = `$${price.toFixed(2)}`;
+                document.getElementById('platform-fee').textContent = `-$${platformFee.toFixed(2)}`;
+                document.getElementById('total-costs').textContent = `-$${totalCost.toFixed(2)}`;
+                document.getElementById('royalty').textContent = `$${royalty.toFixed(2)}`;
+                document.getElementById('total-earnings').textContent = `$${totalEarnings.toFixed(2)}`;
+                document.getElementById('books-count').textContent = `for ${minPurchases} books`;
+
+                // Show warning if royalty is too low
+                if (royalty < 2) {
+                    document.getElementById('royalty-warning').classList.remove('hidden');
+                } else {
+                    document.getElementById('royalty-warning').classList.add('hidden');
+                }
+            }
+            
+            // Update cost estimates when relevant fields change
+            ['binding-type', 'page-count', 'pre-purchase-price', 'min-purchases'].forEach(id => {
+                document.getElementById(id).addEventListener('change', updateCostEstimates);
+            });
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+    .cta-button {
+        @apply bg-primary text-white transition-colors duration-300;
+    }
+    .cta-button:hover {
+        @apply bg-[#E04C2D];
+    }
+    .cta-button:disabled {
+        @apply bg-gray-400 cursor-not-allowed;
+    }
+} 

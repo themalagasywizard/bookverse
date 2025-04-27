@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookVerse - Crowdfund Your Next Read</title>
+    <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/tailwindlabs/tailwindcss/master/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Georgia&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        h1, h2, h3, h4, h5, h6, .font-serif {
+            font-family: 'Georgia', serif;
+        }
+        .hero-bg {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1558901357-ca411559e3e2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+        .cta-button {
+            background-color: #FF5733;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+        .cta-button:hover {
+            background-color: #E04C2D;
+        }
+        .progress-bar-fill {
+            background-color: #FF5733;
+            transition: width 0.5s ease-out;
+        }
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .fade-in-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .scroll-snap-x { scroll-snap-type: x mandatory; }
+        .scroll-snap-start { scroll-snap-align: start; }
+        .scroll-container::-webkit-scrollbar { display: none; }
+        .scroll-container { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-white text-gray-800">
+    <!-- Header Section -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-3 max-w-6xl flex justify-between items-center">
+            <a href="#" class="flex items-center">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" class="mr-2">
+                    <!-- Book base -->
+                    <path d="M5 30C5 27.2386 7.23858 25 10 25H30C32.7614 25 35 27.2386 35 30V32C35 33.1046 34.1046 34 33 34H7C5.89543 34 5 33.1046 5 32V30Z" fill="#FF5733"/>
+                    <!-- Book pages -->
+                    <path d="M8 25V10C8 8.89543 8.89543 8 10 8H30C31.1046 8 32 8.89543 32 10V25" fill="white" stroke="#333333" stroke-width="1.5"/>
+                    <!-- Tree trunk -->
+                    <path d="M20 8V20" stroke="#5D4037" stroke-width="2" stroke-linecap="round"/>
+                    <!-- Tree branches -->
+                    <path d="M15 15L20 10L25 15" stroke="#5D4037" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M13 19L20 12L27 19" stroke="#5D4037" stroke-width="1.5" stroke-linecap="round"/>
+                    <!-- Tree leaves -->
+                    <circle cx="20" cy="7" r="3" fill="#4CAF50"/>
+                    <circle cx="16" cy="10" r="2" fill="#4CAF50"/>
+                    <circle cx="24" cy="10" r="2" fill="#4CAF50"/>
+                    <circle cx="14" cy="14" r="2" fill="#4CAF50"/>
+                    <circle cx="26" cy="14" r="2" fill="#4CAF50"/>
+                    <circle cx="12" cy="18" r="2" fill="#4CAF50"/>
+                    <circle cx="28" cy="18" r="2" fill="#4CAF50"/>
+                </svg>
+                <span class="text-xl font-bold font-serif text-[#333]">BookVerse</span>
+            </a>
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="#" class="text-gray-600 hover:text-[#FF5733] hover:underline">Home</a>
+                <a href="books.html" class="text-gray-600 hover:text-[#FF5733] hover:underline">Books</a>
+                <a href="#how-it-works" class="text-gray-600 hover:text-[#FF5733] hover:underline">How It Works</a>
+                
+                <!-- User Login Button -->
+                <a href="login.html" class="loginBtn text-gray-600 hover:text-[#FF5733] hover:underline">Login</a>
+                
+                <!-- User Profile Dropdown -->
+                <div class="hidden relative" id="userProfileDropdown">
+                    <button id="profileDropdownButton" class="flex items-center space-x-2 focus:outline-none">
+                        <div class="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
+                            <img id="headerAvatar" src="" alt="User Avatar" class="w-full h-full object-cover hidden">
+                            <span id="headerInitials" class="text-sm font-medium text-gray-600">UN</span>
+                        </div>
+                        <span id="headerUserName" class="text-gray-700">User Name</span>
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    
+                    <div id="profileDropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md py-1 z-50">
+                        <a href="profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+                        <a href="#" class="signOutBtn block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign Out</a>
+                    </div>
+                </div>
+                
+                <a href="publish.html" class="cta-button px-8 py-3 rounded-full font-semibold text-lg shadow-lg inline-block">Start Publishing</a>
+            </div>
+            <!-- Mobile Menu Button -->
+            <div class="md:hidden flex items-center">
+                <button id="mobile-menu-button" class="text-gray-600 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+        </nav>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="md:hidden hidden bg-white py-4 px-6 absolute top-full left-0 w-full shadow-lg">
+            <a href="#" class="block py-2 text-gray-600 hover:text-[#FF5733]">Home</a>
+            <a href="books.html" class="block py-2 text-gray-600 hover:text-[#FF5733]">Books</a>
+            <a href="#how-it-works" class="block py-2 text-gray-600 hover:text-[#FF5733]">How It Works</a>
+            <a href="login.html" class="loginBtn block py-2 text-gray-600 hover:text-[#FF5733]">Login</a>
+            
+            <!-- Mobile User Profile -->
+            <div id="mobileUserProfile" class="hidden py-2">
+                <div class="flex items-center px-2 py-2 text-gray-600 hover:text-[#FF5733]">
+                    <div class="w-6 h-6 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center mr-2">
+                        <img id="mobileAvatar" src="" alt="User Avatar" class="w-full h-full object-cover hidden">
+                        <span id="mobileInitials" class="text-xs font-medium text-gray-600">UN</span>
+                    </div>
+                    <span id="mobileUserName">User Name</span>
+                </div>
+                <a href="profile.html" class="block py-2 px-8 text-gray-600 hover:text-[#FF5733]">View Profile</a>
+                <button class="signOutBtn block py-2 px-8 text-gray-600 hover:text-[#FF5733] w-full text-left">Sign Out</button>
+            </div>
+            
+            <a href="publish.html" class="block mt-4 cta-button text-center px-6 py-2 rounded-full font-semibold text-sm shadow-md">Start Publishing</a>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero-bg text-white py-24 md:py-32 text-center">
+            <div class="container mx-auto px-6 max-w-4xl">
+                <h1 class="text-4xl md:text-6xl font-bold font-serif mb-4 fade-in-section">Bring Stories to Life with Crowdfunding</h1>
+                <p class="text-lg md:text-xl mb-8 fade-in-section" style="transition-delay: 0.2s;">Support new books or publish your own. Pre-purchase to make stories real.</p>
+                <div class="space-x-4 fade-in-section" style="transition-delay: 0.4s;">
+                    <a href="books.html" class="cta-button px-8 py-3 rounded-full font-semibold text-lg shadow-lg inline-block">Browse Books</a>
+                    <a href="#how-it-works" class="text-white hover:underline inline-block mt-4 sm:mt-0">Learn How It Works</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Campaigns Section -->
+        <section id="campaigns" class="py-16 md:py-20 bg-gray-50 fade-in-section">
+            <div class="container mx-auto px-6 max-w-6xl">
+                <h2 class="text-3xl font-bold font-serif text-center mb-10 text-[#333]">Discover New Stories</h2>
+                <div id="campaignsGrid" class="grid md:grid-cols-3 gap-8">
+                    <!-- Campaign cards will be loaded dynamically -->
+                    <div class="text-center text-gray-500">Loading campaigns...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works Section -->
+        <section id="how-it-works" class="py-16 md:py-20 fade-in-section">
+            <div class="container mx-auto px-6 max-w-5xl text-center">
+                <h2 class="text-3xl font-bold font-serif mb-10 text-[#333]">How Our Platform Works</h2>
+                <div class="grid md:grid-cols-3 gap-8 text-center">
+                    <!-- Step 1 -->
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                        <div class="text-[#FF5733] mb-4 inline-block">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2 text-[#333]">Authors Upload Books</h3>
+                        <p class="text-gray-600 text-sm">Writers share their PDFs, set binding options, and create campaign goals.</p>
+                    </div>
+                    <!-- Step 2 -->
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                        <div class="text-[#FF5733] mb-4 inline-block">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2 text-[#333]">Readers Back Projects</h3>
+                        <p class="text-gray-600 text-sm">Pre-purchase books you love to help authors reach their funding goals.</p>
+                    </div>
+                    <!-- Step 3 -->
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                        <div class="text-[#FF5733] mb-4 inline-block">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2 text-[#333]">Books Get Printed</h3>
+                        <p class="text-gray-600 text-sm">Once a campaign is successfully funded, books are printed and shipped to backers.</p>
+                    </div>
+                </div>
+                <a href="publish.html" class="cta-button mt-10 px-8 py-3 rounded-full font-semibold text-lg shadow-lg inline-block">Get Started</a>
+            </div>
+        </section>
+
+        <!-- For Authors Section -->
+        <section id="for-authors" class="py-16 md:py-20 bg-[#F5E6CC] fade-in-section">
+            <div class="container mx-auto px-6 max-w-6xl">
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <h2 class="text-3xl font-bold font-serif mb-6 text-[#333]">Publish Your Book Today</h2>
+                        <p class="text-gray-700 mb-4 leading-relaxed">Ready to share your story with the world? BookVerse makes it easy.</p>
+                        <ul class="list-disc list-inside text-gray-700 space-y-2 mb-6">
+                            <li>No upfront printing costs.</li>
+                            <li>Set your own funding goal and price.</li>
+                            <li>Earn royalties on every pre-purchase.</li>
+                            <li>Connect directly with your readers.</li>
+                            <li>Choose binding and format options.</li>
+                        </ul>
+                        <a href="publish.html" class="cta-button px-8 py-3 rounded-full font-semibold text-lg shadow-lg inline-block">Start Publishing</a>
+                    </div>
+                    <div>
+                        <img src="https://picsum.photos/600/400" alt="Campaign Creation Interface Mockup" class="rounded-lg shadow-lg w-full">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials Section -->
+        <section class="py-16 md:py-20 fade-in-section">
+            <div class="container mx-auto px-6 max-w-5xl">
+                <h2 class="text-3xl font-bold font-serif text-center mb-10 text-[#333]">What Our Community Says</h2>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <!-- Testimonial 1 -->
+                    <div class="bg-gray-50 p-6 rounded-lg shadow-sm text-center">
+                        <img src="https://picsum.photos/80" alt="Author Avatar" class="w-16 h-16 rounded-full mx-auto mb-4 border-2 border-[#FF5733]">
+                        <p class="text-gray-600 italic mb-4">"I published my debut novel with no financial risk thanks to BookVerse! The process was smooth and the support was fantastic."</p>
+                        <p class="font-semibold text-[#333]">- Sarah Chen</p>
+                        <p class="text-sm text-gray-500">Author</p>
+                    </div>
+                    <!-- Testimonial 2 -->
+                    <div class="bg-gray-50 p-6 rounded-lg shadow-sm text-center">
+                        <img src="https://picsum.photos/81" alt="Backer Avatar" class="w-16 h-16 rounded-full mx-auto mb-4 border-2 border-[#FF5733]">
+                        <p class="text-gray-600 italic mb-4">"Discovering unique books and supporting authors directly is amazing. I've backed three projects already and love the quality."</p>
+                        <p class="font-semibold text-[#333]">- Michael B.</p>
+                        <p class="text-sm text-gray-500">Reader & Backer</p>
+                    </div>
+                    <!-- Testimonial 3 -->
+                    <div class="bg-gray-50 p-6 rounded-lg shadow-sm text-center">
+                        <img src="https://picsum.photos/82" alt="Author Avatar" class="w-16 h-16 rounded-full mx-auto mb-4 border-2 border-[#FF5733]">
+                        <p class="text-gray-600 italic mb-4">"The platform gave me the confidence to finally share my poetry collection. Seeing it funded was a dream come true!"</p>
+                        <p class="font-semibold text-[#333]">- David Lee</p>
+                        <p class="text-sm text-gray-500">Author</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-[#333] text-gray-300 py-12">
+        <div class="container mx-auto px-6 max-w-6xl">
+            <div class="grid md:grid-cols-3 gap-8 text-center md:text-left">
+                <!-- Left: Logo & Description -->
+                <div>
+                    <a href="#" class="inline-flex items-center mb-2">
+                        <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" class="mr-2">
+                            <!-- Book base -->
+                            <path d="M5 30C5 27.2386 7.23858 25 10 25H30C32.7614 25 35 27.2386 35 30V32C35 33.1046 34.1046 34 33 34H7C5.89543 34 5 33.1046 5 32V30Z" fill="#FF5733"/>
+                            <!-- Book pages -->
+                            <path d="M8 25V10C8 8.89543 8.89543 8 10 8H30C31.1046 8 32 8.89543 32 10V25" fill="white" stroke="#FFFFFF" stroke-width="1.5"/>
+                            <!-- Tree trunk -->
+                            <path d="M20 8V20" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+                            <!-- Tree branches -->
+                            <path d="M15 15L20 10L25 15" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round"/>
+                            <path d="M13 19L20 12L27 19" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round"/>
+                            <!-- Tree leaves -->
+                            <circle cx="20" cy="7" r="3" fill="#6FCF7D"/>
+                            <circle cx="16" cy="10" r="2" fill="#6FCF7D"/>
+                            <circle cx="24" cy="10" r="2" fill="#6FCF7D"/>
+                            <circle cx="14" cy="14" r="2" fill="#6FCF7D"/>
+                            <circle cx="26" cy="14" r="2" fill="#6FCF7D"/>
+                            <circle cx="12" cy="18" r="2" fill="#6FCF7D"/>
+                            <circle cx="28" cy="18" r="2" fill="#6FCF7D"/>
+                        </svg>
+                        <span class="text-2xl font-bold font-serif text-white">BookVerse</span>
+                    </a>
+                    <p class="text-sm text-gray-400">Crowdfund books, support authors, read new stories.</p>
+                </div>
+                <!-- Center: Links -->
+                <div>
+                    <h4 class="font-semibold text-white mb-3">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover:text-white hover:underline text-sm">About Us</a></li>
+                        <li><a href="#" class="hover:text-white hover:underline text-sm">FAQ</a></li>
+                        <li><a href="#" class="hover:text-white hover:underline text-sm">Terms of Service</a></li>
+                        <li><a href="#" class="hover:text-white hover:underline text-sm">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white hover:underline text-sm">Contact</a></li>
+                    </ul>
+                </div>
+                <!-- Right: Social Media -->
+                <div>
+                    <h4 class="font-semibold text-white mb-3">Follow Us</h4>
+                    <div class="flex justify-center md:justify-start space-x-4">
+                        <a href="#" aria-label="Twitter" class="text-gray-400 hover:text-white">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"></path>
+                            </svg>
+                        </a>
+                        <a href="#" aria-label="Instagram" class="text-gray-400 hover:text-white">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M12 2c-2.716 0-3.056.012-4.123.06-1.064.049-1.791.218-2.427.465a4.902 4.902 0 00-1.772 1.153A4.902 4.902 0 002.525 5.45c-.247.636-.416 1.363-.465 2.427C2.012 8.944 2 9.284 2 12s.012 3.056.06 4.123c.049 1.064.218 1.791.465 2.427a4.902 4.902 0 001.153 1.772 4.902 4.902 0 001.772 1.153c.636.247 1.363.416 2.427.465C8.944 21.988 9.284 22 12 22s3.056-.012 4.123-.06c1.064-.049 1.791-.218 2.427-.465a4.902 4.902 0 001.772-1.153 4.902 4.902 0 001.153-1.772c.247-.636.416-1.363.465-2.427.048-1.067.06-1.407.06-4.123s-.012-3.056-.06-4.123c-.049-1.064-.218-1.791-.465-2.427a4.902 4.902 0 00-1.153-1.772 4.902 4.902 0 00-1.772-1.153c-.636-.247-1.363-.416-2.427-.465C15.056 2.012 14.716 2 12 2zm0 1.802c2.67 0 2.986.01 4.04.058.976.045 1.505.207 1.858.344.466.182.8.398 1.15.748.35.35.566.683.748 1.15.137.353.3.882.344 1.857.048 1.055.058 1.37.058 4.041 0 2.67-.01 2.986-.058 4.04-.045.976-.207 1.505-.344 1.858-.182.466-.398.8-.748 1.15-.35.35-.683.566-1.15.748-.353.137-.882.3-1.857.344-1.054.048-1.37.058-4.041.058-2.67 0-2.986-.01-4.04-.058-.976-.045-1.505-.207-1.858-.344a3.097 3.097 0 01-1.15-.748 3.097 3.097 0 01-.748-1.15c-.137-.353-.3-.882-.344-1.857-.048-1.055-.058-1.37-.058-4.041 0-2.67.01-2.986.058-4.04.045-.976.207-1.505.344-1.858.182-.466.398-.8.748-1.15.35-.35.683-.566 1.15-.748.353-.137.882-.3 1.857-.344 1.055-.048 1.37-.058 4.041-.058zm0 11.531a3.333 3.333 0 110-6.666 3.333 3.333 0 010 6.666zm0-8.468a5.135 5.135 0 100 10.27 5.135 5.135 0 000-10.27zm6.538-.203a1.2 1.2 0 11-2.4 0 1.2 1.2 0 012.4 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8 pt-8 border-t border-gray-700 text-center text-sm text-gray-500">
+                © 2025 BookVerse. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Initialize Supabase client
+        const supabaseUrl = 'https://qcnqdwylsxgpnoogcuhm.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjbnFkd3lsc3hncG5vb2djdWhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUyNDY4NTEsImV4cCI6MjA2MDgyMjg1MX0.4z2ZSBfJLSSReG5KLZXrEUVN8n2HU1EuSvsy98sPEgY';
+        
+        // Create Supabase client
+        const { createClient } = supabase;
+        const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+        
+        // Mobile Menu Toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Authentication elements
+        const loginButtons = document.querySelectorAll('.loginBtn');
+        const signOutButtons = document.querySelectorAll('.signOutBtn');
+        const userProfileDropdown = document.getElementById('userProfileDropdown');
+        const mobileUserProfile = document.getElementById('mobileUserProfile');
+        const headerUserName = document.getElementById('headerUserName');
+        const mobileUserName = document.getElementById('mobileUserName');
+        const headerAvatar = document.getElementById('headerAvatar');
+        const mobileAvatar = document.getElementById('mobileAvatar');
+        const headerInitials = document.getElementById('headerInitials');
+        const mobileInitials = document.getElementById('mobileInitials');
+        const profileDropdownButton = document.getElementById('profileDropdownButton');
+        const profileDropdownMenu = document.getElementById('profileDropdownMenu');
+        const campaignButtons = document.querySelectorAll('a[href="publish.html"]');
+
+        // Set up campaign buttons to check login status
+        campaignButtons.forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const isLoggedIn = await checkAuth();
+                
+                if (isLoggedIn) {
+                    // User is logged in, proceed to campaign creation
+                    window.location.href = 'publish.html';
+                } else {
+                    // User is not logged in, redirect to login page
+                    // Store the intended destination for redirect after login
+                    localStorage.setItem('redirectUrl', 'publish.html');
+                    window.location.href = 'login.html';
+                }
+            });
+        });
+
+        // Toggle profile dropdown
+        profileDropdownButton?.addEventListener('click', () => {
+            profileDropdownMenu.classList.toggle('hidden');
+        });
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', (event) => {
+            if (!profileDropdownButton?.contains(event.target)) {
+                profileDropdownMenu.classList.add('hidden');
+            }
+        });
+
+        // Check authentication state
+        async function checkAuth() {
+            try {
+                const { data, error } = await supabaseClient.auth.getUser();
+                if (error || !data.user) {
+                    // User is not logged in
+                    showLoginButtons();
+                    return false;
+                } else {
+                    // User is logged in
+                    showProfileButtons(data.user);
+                    return true;
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                showLoginButtons();
+                return false;
+            }
+        }
+
+        // Show login buttons, hide profile and sign out buttons
+        function showLoginButtons() {
+            loginButtons.forEach(btn => btn.classList.remove('hidden'));
+            userProfileDropdown.classList.add('hidden');
+            mobileUserProfile.classList.add('hidden');
+        }
+
+        // Show profile and sign out buttons, hide login buttons
+        function showProfileButtons(user) {
+            loginButtons.forEach(btn => btn.classList.add('hidden'));
+            userProfileDropdown.classList.remove('hidden');
+            mobileUserProfile.classList.remove('hidden');
+            
+            // Set user name
+            const displayName = user.user_metadata?.full_name || user.email || 'User';
+            headerUserName.textContent = displayName;
+            mobileUserName.textContent = displayName;
+            
+            // Get user initials for avatar placeholder
+            const initials = getInitials(displayName);
+            headerInitials.textContent = initials;
+            mobileInitials.textContent = initials;
+            
+            // Check if avatar URL is valid (not a blob URL or empty)
+            const avatarUrl = user.user_metadata?.avatar_url;
+            const isValidUrl = avatarUrl && 
+                               avatarUrl.trim() !== '' && 
+                               !avatarUrl.startsWith('blob:');
+            
+            if (isValidUrl) {
+                // Update desktop header avatar
+                headerAvatar.src = avatarUrl;
+                headerAvatar.classList.remove('hidden');
+                headerInitials.classList.add('hidden');
+                
+                // Update mobile avatar
+                mobileAvatar.src = avatarUrl;
+                mobileAvatar.classList.remove('hidden');
+                mobileInitials.classList.add('hidden');
+            } else {
+                // If we find an invalid blob URL in metadata, we'll just show initials
+                if (avatarUrl && avatarUrl.startsWith('blob:')) {
+                    console.log('Found invalid blob URL in user metadata');
+                    // Blob URLs won't work across page loads, so show initials instead
+                }
+                
+                // Show initials for desktop header
+                headerAvatar.classList.add('hidden');
+                headerInitials.classList.remove('hidden');
+                
+                // Show initials for mobile
+                mobileAvatar.classList.add('hidden');
+                mobileInitials.classList.remove('hidden');
+            }
+            
+            console.log('User is logged in:', user.email);
+        }
+
+        // Generate initials from name
+        function getInitials(name) {
+            if (!name) return 'UN';
+            
+            // Split the name by spaces, dashes, dots, etc.
+            const parts = name.split(/[\s.-_@]+/);
+            
+            if (parts.length >= 2) {
+                // Get first letter of first and last parts
+                return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+            } else if (parts.length === 1 && parts[0].length >= 2) {
+                // Get first two letters of single name/email
+                return parts[0].substring(0, 2).toUpperCase();
+            } else if (parts.length === 1) {
+                // Get first letter of single name/email
+                return parts[0][0].toUpperCase() + 'N';
+            } else {
+                return 'UN';
+            }
+        }
+
+        // Handle sign out
+        signOutButtons.forEach(btn => {
+            btn.addEventListener('click', async () => {
+                try {
+                    const { error } = await supabaseClient.auth.signOut();
+                    if (error) throw error;
+                    
+                    // Clear login state
+                    localStorage.removeItem('isLoggedIn');
+                    localStorage.removeItem('userEmail');
+                    
+                    // Update UI
+                    showLoginButtons();
+                    
+                    console.log('User signed out successfully');
+                } catch (error) {
+                    console.error('Sign out error:', error);
+                }
+            });
+        });
+
+        // Check authentication state on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+        });
+
+        // Intersection Observer for Fade-in Animations
+        const sectionsToFade = document.querySelectorAll('.fade-in-section');
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const observerCallback = (entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        };
+
+        const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+        sectionsToFade.forEach(section => {
+            observer.observe(section);
+        });
+
+        // Helper function to format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount);
+        }
+
+        // Helper function to calculate days remaining
+        function getDaysRemaining(endDate) {
+            const end = new Date(endDate);
+            const now = new Date();
+            const diff = end - now;
+            return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+        }
+
+        // Function to load and display campaigns
+        async function loadCampaigns() {
+            try {
+                const campaignsGrid = document.getElementById('campaignsGrid');
+                
+                // Get campaigns from Supabase
+                const { data: campaigns, error } = await supabaseClient
+                    .from('campaigns')
+                    .select('*')
+                    .eq('status', 'active')
+                    .order('created_at', { ascending: false })
+                    .limit(3);
+
+                if (error) throw error;
+
+                // Clear loading message
+                campaignsGrid.innerHTML = '';
+
+                // Display campaigns
+                campaigns.forEach(campaign => {
+                    const isDirectPublish = campaign.is_direct_publish;
+                    
+                    const campaignCard = document.createElement('div');
+                    campaignCard.className = 'bg-white rounded-lg shadow-md overflow-hidden transform hover:scale-105 transition-transform duration-300';
+                    
+                    // Different display for direct publishing vs campaign
+                    const statusBadge = isDirectPublish ? 
+                        `<span class="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold">Available Now</span>` :
+                        `<span class="absolute top-4 right-4 bg-[#FF5733] text-white px-3 py-1 rounded-full text-xs font-semibold">Crowdfunding</span>`;
+
+                    const progressSection = isDirectPublish ?
+                        `<div class="flex justify-between items-center mb-3">
+                            <span class="text-sm text-gray-600">Print on demand</span>
+                            <span class="text-sm text-green-500 font-semibold">Ships in 3-5 days</span>
+                         </div>` :
+                        `<div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+                                <div class="progress-bar-fill h-2.5 rounded-full" style="width: ${((campaign.current_purchases || 0) / campaign.min_purchases * 100)}%"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500 mb-3">
+                                <span>${campaign.current_purchases || 0}/${campaign.min_purchases} pre-purchases</span>
+                                <span>${getDaysRemaining(new Date(campaign.created_at).setDate(new Date(campaign.created_at).getDate() + campaign.duration_days))} days left</span>
+                            </div>
+                         </div>`;
+
+                    campaignCard.innerHTML = `
+                        <div class="relative">
+                            <img src="${campaign.cover_image_url || 'https://picsum.photos/300/400'}" 
+                                 alt="${campaign.title}" 
+                                 class="w-full h-48 object-cover">
+                            ${statusBadge}
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-semibold text-lg mb-1 text-[#333]">${campaign.title}</h3>
+                            <p class="text-sm text-gray-600 mb-2">by ${campaign.author_name}</p>
+                            <p class="text-sm text-gray-700 mb-3">${campaign.description.substring(0, 100)}${campaign.description.length > 100 ? '...' : ''}</p>
+                            ${progressSection}
+                            <a href="campaign.html?id=${campaign.id}" 
+                               class="cta-button block text-center w-full py-2 rounded-md font-semibold text-sm">
+                               ${isDirectPublish ? 'Buy Now' : 'Back this Book'} for ${formatCurrency(campaign.price)}
+                            </a>
+                        </div>
+                    `;
+                    campaignsGrid.appendChild(campaignCard);
+                });
+
+                // If no campaigns found
+                if (!campaigns.length) {
+                    campaignsGrid.innerHTML = `
+                        <div class="col-span-3 text-center text-gray-500">
+                            No books found.
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading campaigns:', error);
+                document.getElementById('campaignsGrid').innerHTML = `
+                    <div class="col-span-3 text-center text-red-500">
+                        Error loading campaigns. Please try again later.
+                    </div>
+                `;
+            }
+        }
+
+        // Load campaigns when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            loadCampaigns();
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,399 @@
+Technical Breakdown: Book Editing and Visualizing Tool
+Objective
+Create a simple book editing and visualizing tool that:
+
+Allows authors to see their PDF manuscript as a book (2D page spread, cover preview).
+Ensures the book matches Lulu’s print format (e.g., trim size, margins, binding).
+Provides basic editing capabilities (e.g., adjust trim size, binding) with AI-powered formatting/proofreading (gated by Author Pro subscription).
+Integrates into the “Start a Campaign” workflow and author dashboard.
+Scope (MVP - Keep It Simple)
+Visualization:
+2D page spread preview of the PDF (first 10 pages for performance).
+Cover preview (uploaded cover image applied to a book mockup).
+No 3D rendering or page-turn animations (to be added later).
+Editing:
+Basic adjustments: Select trim size and binding from Lulu-supported options.
+AI formatting: Auto-adjust margins and embed fonts (Author Pro subscription required).
+AI proofreading: Basic grammar/spelling checks (Author Pro subscription required).
+Lulu Compliance:
+Validate PDF against Lulu specs (e.g., margins ≥ 0.75in, supported trim sizes).
+Display warnings if the PDF doesn’t comply (e.g., “Margins too small”).
+Future Upgrades (Not in MVP):
+3D book preview with page-turn effects (using Three.js).
+Advanced formatting (e.g., custom fonts, drop caps).
+Advanced proofreading (e.g., style, readability analysis).
+Technical Requirements
+Functional Requirements
+Upload and Parse PDF:
+Authors upload a PDF manuscript (e.g., whispers_cosmos.pdf).
+Parse the PDF to extract pages and metadata (e.g., page size, fonts).
+Visualize as a Book:
+Display a 2D page spread (e.g., left page, right page) with margins, bleed, and binding indicators.
+Show the cover image (cosmos_cover.jpg) on a book mockup (e.g., hardcover front).
+Lulu Format Compliance:
+Fetch supported trim sizes and bindings from Lulu API.
+Adjust PDF to match selected trim size and binding (e.g., scale pages, set margins).
+Validate PDF against Lulu specs, show warnings if non-compliant.
+Basic Editing:
+Allow authors to select trim size (e.g., 5.5 x 8.5in) and binding (e.g., Hardcover).
+AI formatting: Auto-set margins to 0.75in, embed fonts (Author Pro only).
+AI proofreading: Highlight grammar/spelling errors, suggest fixes (Author Pro only).
+Integration:
+Add to “Start a Campaign” workflow (after PDF upload, before metadata).
+Add to author dashboard for editing existing manuscripts.
+Non-Functional Requirements
+Performance: Render the first 10 pages in <2 seconds on a modern browser.
+Scalability: Support 100 concurrent users (low initial load).
+Security: Encrypt PDF data in transit (AWS S3, HTTPS).
+Cost: Minimize expenses (use free libraries, low AWS usage).
+Technical Implementation
+1. Update Campaign Creation Workflow
+New Step: Add “Step 2: Edit and Preview Your Book” (after PDF upload, before validation).
+Workflow:
+Upload PDF: Author uploads whispers_cosmos.pdf.
+Edit and Preview Book (New):
+Show 2D page spread (first 10 pages).
+Show cover preview.
+Allow trim size and binding selection.
+Offer AI formatting/proofreading (Author Pro subscription required).
+Validate PDF: Validate the edited PDF.
+Metadata: Enter title, summary, etc.
+Cost Estimate: Lulu API calculates costs.
+2. PDF Parsing and Visualization
+Functionality:
+Parse the uploaded PDF (stored in AWS S3) to extract pages.
+Render pages in a 2D book layout with the cover.
+Tech:
+Library: pdf.js (Mozilla’s PDF rendering library, free).
+Backend:
+Store the PDF in AWS S3 (e.g., /campaigns/campaign_001/manuscript.pdf).
+API endpoint: /manuscripts/:id/pages (returns S3 URL for frontend rendering).
+Frontend (React):
+Component: BookPreview.jsx.
+Use pdf.js to load the PDF and render pages into a canvas element.
+Display a 2D page spread (left/right pages, first 10 pages for performance).
+Example:
+javascript
+
+Copier
+import React, { useEffect, useRef } from 'react';
+import * as pdfjsLib from 'pdfjs-dist';
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = '//cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+
+const BookPreview = ({ pdfUrl }) => {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const loadPdf = async () => {
+      const pdf = await pdfjsLib.getDocument(pdfUrl).promise;
+      const page = await pdf.getPage(1); // First page
+      const viewport = page.getViewport({ scale: 1.0 });
+
+      const canvas = canvasRef.current;
+      const context = canvas.getContext('2d');
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      const renderContext = { canvasContext: context, viewport };
+      await page.render(renderContext).promise;
+    };
+    loadPdf();
+  }, [pdfUrl]);
+
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center' }}>
+      <canvas ref={canvasRef} style={{ border: '1px solid #ccc', margin: '5px' }} />
+      {/* Repeat for right page */}
+    </div>
+  );
+};
+
+export default BookPreview;
+Cover Preview:
+Display the uploaded cover image (cosmos_cover.jpg) on a simple book mockup.
+Use CSS to create a book cover effect (e.g., shadow, border to simulate hardcover).
+Example:
+css
+
+Copier
+.book-cover {
+  width: 200px;
+  height: 300px;
+  background: url('/campaigns/campaign_001/cover.jpg') no-repeat center;
+  background-size: cover;
+  border: 5px solid #333;
+  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.3);
+  margin: 20px auto;
+}
+3. Lulu Format Compliance
+Functionality:
+Fetch supported trim sizes and bindings from Lulu API.
+Validate PDF against Lulu specs.
+Adjust PDF to match selected trim size and binding.
+Tech:
+Lulu API (Mock Response):
+json
+
+Copier
+{
+  "trim_sizes": [
+    { "name": "5.5 x 8.5", "width": 5.5, "height": 8.5 },
+    { "name": "6 x 9", "width": 6, "height": 9 }
+  ],
+  "bindings": [
+    { "name": "Hardcover", "gutter": 0.5, "spine_factor": 0.0033 },
+    { "name": "Paperback", "gutter": 0.3, "spine_factor": 0.0025 }
+  ],
+  "margins": { "top": 0.75, "bottom": 0.75, "inner": 0.75, "outer": 0.75 },
+  "bleed": 0.125
+}
+Backend:
+API endpoint: /lulu/specs (returns above JSON).
+API endpoint: /manuscripts/:id/validate:
+Use pdf.js to extract metadata (e.g., page size, margins).
+Compare against Lulu specs (e.g., margins ≥ 0.75in).
+Return validation result (e.g., { "status": "fail", "message": "Margins too small (0.5in < 0.75in)" }).
+Frontend:
+Component: FormatSettings.jsx.
+Dropdowns for trim size and binding (populated from /lulu/specs).
+Display warnings if PDF doesn’t comply (e.g., “Margins too small, adjust with Author Pro?”).
+Example:
+javascript
+
+Copier
+const FormatSettings = ({ onChange }) => {
+  const [trimSizes, setTrimSizes] = React.useState([]);
+  const [bindings, setBindings] = React.useState([]);
+  const [warning, setWarning] = React.useState('');
+
+  React.useEffect(() => {
+    fetch('/lulu/specs')
+      .then(res => res.json())
+      .then(data => {
+        setTrimSizes(data.trim_sizes);
+        setBindings(data.bindings);
+      });
+
+    fetch('/manuscripts/campaign_001/validate')
+      .then(res => res.json())
+      .then(data => setWarning(data.message));
+  }, []);
+
+  return (
+    <div>
+      <select onChange={(e) => onChange('trimSize', e.target.value)}>
+        {trimSizes.map(size => (
+          <option key={size.name} value={size.name}>{size.name}</option>
+        ))}
+      </select>
+      <select onChange={(e) => onChange('binding', e.target.value)}>
+        {bindings.map(binding => (
+          <option key={binding.name} value={binding.name}>{binding.name}</option>
+        ))}
+      </select>
+      {warning && <p style={{ color: 'red' }}>{warning}</p>}
+    </div>
+  );
+};
+4. Basic Editing (Formatting and Proofreading)
+Functionality:
+Allow authors to select trim size and binding.
+AI formatting: Auto-adjust margins, embed fonts (Author Pro only).
+AI proofreading: Basic grammar/spelling checks (Author Pro only).
+Tech:
+AI Formatting:
+Library: pdf-lib.js (free).
+Backend:
+API endpoint: /manuscripts/:id/format (Author Pro only):
+Adjust margins to 0.75in, embed fonts.
+Example (Node.js):
+javascript
+
+Copier
+const { PDFDocument } = require('pdf-lib');
+const fs = require('fs');
+
+app.post('/manuscripts/:id/format', async (req, res) => {
+  const { userId } = req.body;
+  // Check Author Pro subscription
+  const subscription = await checkSubscription(userId);
+  if (!subscription || subscription.tier === 'none') {
+    return res.status(403).json({ error: 'Author Pro subscription required' });
+  }
+
+  const pdfBytes = await fs.promises.readFile('path/to/original.pdf');
+  const pdfDoc = await PDFDocument.load(pdfBytes);
+  // Adjust margins, embed fonts (mock logic)
+  pdfDoc.setMargins(0.75 * 72); // 0.75in in points
+  const newPdfBytes = await pdfDoc.save();
+
+  // Save to S3
+  await saveToS3(newPdfBytes, `/campaigns/campaign_001/formatted.pdf`);
+  res.json({ url: `/campaigns/campaign_001/formatted.pdf` });
+});
+Frontend:
+Button: “Format with AI” (visible only to Author Pro subscribers).
+Calls /manuscripts/:id/format, updates preview with new PDF.
+AI Proofreading:
+Library: LanguageTool (open-source, free for basic checks).
+Backend:
+Deploy LanguageTool server locally (e.g., on AWS EC2, free tier).
+API endpoint: /manuscripts/:id/proofread (Author Pro only):
+Extract text using pdf.js.
+Query LanguageTool for errors.
+Example (Node.js):
+javascript
+
+Copier
+const fetch = require('node-fetch');
+
+app.post('/manuscripts/:id/proofread', async (req, res) => {
+  const { userId } = req.body;
+  const subscription = await checkSubscription(userId);
+  if (!subscription || subscription.tier === 'none') {
+    return res.status(403).json({ error: 'Author Pro subscription required' });
+  }
+
+  // Extract text (mock logic)
+  const text = await extractTextFromPdf('path/to/pdf');
+  const response = await fetch('http://localhost:8010/v2/check', {
+    method: 'POST',
+    body: new URLSearchParams({ text, language: 'en-US' }),
+  });
+  const errors = await response.json();
+  res.json(errors);
+});
+Frontend:
+Component: ProofreadPane.jsx.
+Display extracted text with highlighted errors (e.g., red underline for spelling).
+Example:
+javascript
+
+Copier
+const ProofreadPane = ({ text, errors }) => {
+  return (
+    <div>
+      {text.split('\n').map((line, i) => (
+        <p key={i}>
+          {line} {errors[i] && <span style={{ color: 'red' }}>{errors[i].message}</span>}
+        </p>
+      ))}
+      <button onClick={() => alert('Apply fixes (mock)')}>Apply Fixes</button>
+    </div>
+  );
+};
+Button: “Proofread with AI” (visible only to Author Pro subscribers).
+Calls /manuscripts/:id/proofread, displays errors.
+5. Author Dashboard Integration
+Functionality:
+Allow authors to edit and preview existing manuscripts.
+Tech:
+UI:
+Add “Edit & Preview” button next to each manuscript in the dashboard.
+Opens the same BookPreview.jsx and FormatSettings.jsx components.
+Backend:
+Reuse /manuscripts/:id/pages, /manuscripts/:id/format, and /manuscripts/:id/proofread endpoints.
+6. Database Updates
+Schema:
+Add fields to campaigns table:
+trim_size (string, e.g., “5.5 x 8.5”).
+binding (string, e.g., “Hardcover”).
+formatted_pdf_url (string, e.g., /campaigns/campaign_001/formatted.pdf).
+Add proofreading_errors table (for storing errors):
+manuscript_id, error_type, message, position.
+Example Workflow for “Whispers of the Cosmos”
+Upload PDF:
+Elena uploads whispers_cosmos.pdf (300 pages).
+Edit and Preview Book:
+Preview:
+2D page spread shows first 10 pages (A5 size, 0.5in margins).
+Cover preview shows cosmos_cover.jpg on a hardcover mockup.
+Settings:
+Elena selects trim size “5.5 x 8.5” and binding “Hardcover”.
+Warning: “Margins too small (0.5in < 0.75in).”
+AI Formatting (Author Pro):
+Elena subscribes to Author Pro Basic ($10.61/month with Stripe fee).
+Clicks “Format with AI” → margins adjusted to 0.75in, fonts embedded.
+New PDF saved: /campaigns/campaign_001/formatted.pdf.
+AI Proofreading (Author Pro):
+Clicks “Proofread with AI” → 50 grammar/spelling errors highlighted.
+Elena reviews errors (e.g., “Your” → “You’re”), applies fixes (mock logic).
+Validate PDF:
+Edited PDF passes validation (margins 0.75in, 5.5 x 8.5in).
+Proceed:
+Elena continues to metadata and cost estimation.
+Dashboard View
+Manuscript: whispers_cosmos.pdf (Formatted: Yes, Errors: 50).
+Edit & Preview: Opens the same preview/edit interface.
+Technical Stack Additions
+Libraries:
+pdf.js: Parse and render PDFs (free).
+pdf-lib.js: Modify PDFs for formatting (free).
+LanguageTool: Proofreading (free, self-hosted).
+Frontend: React components (BookPreview.jsx, FormatSettings.jsx, ProofreadPane.jsx).
+Backend: Node.js/Django for API endpoints (/manuscripts/:id/format, /manuscripts/:id/proofread).
+Services:
+AWS S3: Store PDFs.
+AWS EC2: Host LanguageTool (free tier).
+Cost:
+Libraries: $0 (all free).
+AWS: ~$5/month (S3 storage, EC2 free tier).
+Development Effort
+Frontend:
+BookPreview.jsx (PDF rendering, cover mockup): 10 hours.
+FormatSettings.jsx (trim size, binding, warnings): 5 hours.
+ProofreadPane.jsx (display errors): 5 hours.
+Backend:
+API endpoints (/pages, /validate, /format, /proofread): 10 hours.
+LanguageTool setup: 2 hours.
+Database:
+Schema updates: 2 hours.
+Testing:
+Test rendering, formatting, proofreading: 5 hours.
+Total: ~39 hours (fits your 10–15 hours/week over ~3 weeks).
+Future Upgrades
+3D Preview: Add Three.js for a 3D book model with page-turn animations.
+Advanced Formatting: Support custom fonts, images, drop caps (Author Pro Premium).
+Advanced Proofreading: Add style/readability analysis (e.g., ProWritingAid API).
+Performance: Pre-process PDFs to images (AWS Lambda) for faster rendering.
+Editing: Allow direct PDF edits (e.g., change text in the browser).
+Challenges and Mitigations
+Performance:
+Challenge: Rendering large PDFs may be slow.
+Mitigation: Limit to 10 pages, cache rendered pages in browser memory.
+Lulu Accuracy:
+Challenge: Preview may not match Lulu’s exact output.
+Mitigation: Use Lulu API specs, add disclaimer (“Preview is an approximation”).
+Subscription Gating:
+Challenge: Authors may want free editing.
+Mitigation: Show a locked preview with a “Subscribe to Author Pro” button.
+Proofreading Accuracy:
+Challenge: LanguageTool may miss nuanced errors.
+Mitigation: Upgrade to Grammarly/ProWritingAid later, allow authors to reject suggestions.
+Mock Data Update for “Whispers of the Cosmos”
+json
+
+Copier
+{
+  "campaign": {
+    "id": "campaign_001",
+    "title": "Whispers of the Cosmos",
+    "author": {
+      "id": "author_001",
+      "name": "Elena Starfield",
+      "subscription": { "tier": "Author Pro Basic", "status": "active" }
+    },
+    "summary": "A gripping sci-fi adventure...",
+    "genre": "Science Fiction",
+    "trim_size": "5.5 x 8.5",
+    "binding": "Hardcover",
+    "page_count": 300,
+    "pdf_url": "/campaigns/campaign_001/manuscript.pdf",
+    "formatted_pdf_url": "/campaigns/campaign_001/formatted.pdf",
+    "cover_image_url": "/campaigns/campaign_001/cover.jpg",
+    "proofreading_errors": 50
+  }
+}
+Summary
+This simple book editing and visualizing tool allows authors to preview their PDF as a 2D book (page spread and cover), select trim size and binding, and use AI formatting/proofreading (Author Pro only). It ensures Lulu format compliance using their API specs and validates the PDF accordingly. Built with pdf.js, pdf-lib.js, and LanguageTool, the MVP requires ~39 hours of development and minimal costs (~$5/month for AWS). It integrates into the campaign creation workflow and author dashboard, providing a seamless experience while leaving room for future upgrades like 3D previews and advanced editing. This feature enhances your platform’s value, ensures print-ready books, and supports your goal of simplicity for indie authors.

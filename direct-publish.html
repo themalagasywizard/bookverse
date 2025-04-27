@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Direct Publishing - BookVerse</title>
+    <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/tailwindlabs/tailwindcss/master/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Georgia&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        h1, h2, h3, h4, h5, h6, .font-serif {
+            font-family: 'Georgia', serif;
+        }
+        .cta-button {
+            background-color: #FF5733;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+        .cta-button:hover {
+            background-color: #E04C2D;
+        }
+        .progress-bar {
+            transition: width 0.3s ease-out;
+        }
+        .drag-drop-zone {
+            border: 2px dashed #ccc;
+            transition: border-color 0.3s ease;
+        }
+        .drag-drop-zone.drag-over {
+            border-color: #FF5733;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-3 max-w-6xl flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-bold font-serif text-[#333]">
+                { B<span class="text-[#FF5733]">V</span> } <span class="hidden sm:inline">BookVerse</span>
+            </a>
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="index.html" class="text-gray-600 hover:text-[#FF5733] hover:underline">Home</a>
+                <a href="index.html#books" class="text-gray-600 hover:text-[#FF5733] hover:underline">Browse Books</a>
+                <button id="save-draft" class="px-4 py-2 rounded-full text-gray-600 border border-gray-300 hover:bg-gray-100">
+                    Save Draft
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Progress Bar -->
+        <div class="mb-8">
+            <div class="flex justify-between mb-2">
+                <span class="text-sm text-gray-600" id="progress-text">Step 1 of 3: Upload PDF</span>
+                <span class="text-sm text-gray-600" id="progress-percentage">33%</span>
+            </div>
+            <div class="h-2 bg-gray-200 rounded-full">
+                <div class="progress-bar h-full bg-[#FF5733] rounded-full" style="width: 33%"></div>
+            </div>
+        </div>
+
+        <!-- Step Containers -->
+        <div id="step-containers" class="space-y-8">
+            <!-- Step 1: Upload PDF -->
+            <div id="step-1" class="bg-white rounded-lg shadow-md p-8">
+                <h2 class="text-2xl font-serif font-bold mb-4">Upload Your Book PDF</h2>
+                <p class="text-gray-600 mb-6">Upload a print-ready PDF. We'll check it for compatibility with Lulu's printing requirements.</p>
+                
+                <div id="upload-zone" class="drag-drop-zone rounded-lg p-8 text-center cursor-pointer">
+                    <input type="file" id="pdf-input" class="hidden" accept=".pdf">
+                    <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    <p class="text-gray-600 mb-2">Drop your PDF here or click to upload</p>
+                    <p class="text-sm text-gray-500">Maximum file size: 100MB</p>
+                </div>
+
+                <div id="upload-status" class="hidden mt-4">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span class="text-gray-700" id="file-name"></span>
+                        <span class="text-gray-500" id="file-size"></span>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex justify-between">
+                    <a href="publish.html" class="px-6 py-2 rounded-full text-gray-600 border border-gray-300 hover:bg-gray-100">Back</a>
+                    <button id="next-step-1" class="cta-button px-6 py-2 rounded-full font-semibold" disabled>Next</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Book Details & Pricing -->
+            <div id="step-2" class="hidden bg-white rounded-lg shadow-md p-8">
+                <h2 class="text-2xl font-serif font-bold mb-4">Book Details & Pricing</h2>
+                <p class="text-gray-600 mb-6">Set your book's details and pricing for print-on-demand.</p>
+
+                <form id="book-details-form" class="space-y-6">
+                    <!-- Basic Info -->
+                    <div>
+                        <label for="book-title" class="block text-sm font-medium text-gray-700 mb-1">Book Title</label>
+                        <input type="text" id="book-title" required
+                               class="w-full p-2 border border-gray-300 rounded-md focus:ring-[#FF5733] focus:border-[#FF5733]"
+                               placeholder="Enter your book's title">
+                    </div>
+
+                    <div>
+                        <label for="author-name" class="block text-sm font-medium text-gray-700 mb-1">Author Name</label>
+                        <input type="text" id="author-name" required
+                               class="w-full p-2 border border-gray-300 rounded-md focus:ring-[#FF5733] focus:border-[#FF5733]"
+                               placeholder="Your name or pen name">
+                    </div>
+
+                    <div>
+                        <label for="book-description" class="block text-sm font-medium text-gray-700 mb-1">
+                            Book Description
+                            <span class="text-gray-500 text-xs" id="description-count">(0/500 words)</span>
+                        </label>
+                        <textarea id="book-description" rows="4" required
+                                  class="w-full p-2 border border-gray-300 rounded-md focus:ring-[#FF5733] focus:border-[#FF5733]"
+                                  placeholder="Write a compelling description of your book..."></textarea>
+                    </div>
+
+                    <!-- Cover Image Upload -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Cover Image</label>
+                        <div id="cover-upload-zone" class="drag-drop-zone rounded-lg p-6 text-center cursor-pointer">
+                            <input type="file" id="cover-input" class="hidden" accept="image/jpeg,image/png">
+                            <div id="cover-preview-container" class="hidden mb-4">
+                                <img id="cover-preview" src="" alt="Cover Preview" class="max-h-48 mx-auto rounded-lg">
+                            </div>
+                            <div id="cover-upload-prompt">
+                                <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <p class="text-gray-600 mb-2">Drop your cover image here or click to upload</p>
+                                <p class="text-sm text-gray-500">PNG, JPG up to 5MB (Recommended size: 1600x2400px)</p>
+                            </div>
+                        </div>
+                        <div id="cover-upload-status" class="hidden mt-2">
+                            <div class="flex items-center space-x-2">
+                                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                <span class="text-gray-700" id="cover-file-name"></span>
+                                <span class="text-gray-500" id="cover-file-size"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Print Options -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="binding-type" class="block text-sm font-medium text-gray-700 mb-1">Binding Type</label>
+                            <select id="binding-type" required
+                                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-[#FF5733] focus:border-[#FF5733]">
+                                <option value="">Select binding</option>
+                                <option value="perfect">Perfect Bound</option>
+                                <option value="hardcover">Hardcover</option>
+                                <option value="coil">Coil Bound</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="paper-type" class="block text-sm font-medium text-gray-700 mb-1">Paper Type</label>
+                            <select id="paper-type" required
+                                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-[#FF5733] focus:border-[#FF5733]">
+                                <option value="">Select paper</option>
+                                <option value="standard">Standard White</option>
+                                <option value="premium">Premium White</option>
+                                <option value="cream">Cream</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Pricing -->
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-semibold mb-4">Pricing Calculator</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label for="retail-price" class="block text-sm font-medium text-gray-700 mb-1">Retail Price</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-2 text-gray-500">$</span>
+                                    <input type="number" id="retail-price" required min="0" step="0.01"
+                                           class="w-full pl-8 p-2 border border-gray-300 rounded-md focus:ring-[#FF5733] focus:border-[#FF5733]"
+                                           placeholder="0.00">
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Printing Cost:</span>
+                                <span id="printing-cost" class="font-semibold">$0.00</span>
+                            </div>
+
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Platform Fee (15%):</span>
+                                <span id="platform-fee" class="font-semibold">$0.00</span>
+                            </div>
+
+                            <div class="flex justify-between text-sm pt-2 border-t">
+                                <span class="text-gray-600">Your Earnings per Book:</span>
+                                <span id="earnings" class="font-semibold text-[#FF5733]">$0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="mt-8 flex justify-between">
+                    <button id="back-step-2" class="px-6 py-2 rounded-full text-gray-600 border border-gray-300 hover:bg-gray-100">Back</button>
+                    <button id="next-step-2" class="cta-button px-6 py-2 rounded-full font-semibold">Next</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Review & Publish -->
+            <div id="step-3" class="hidden bg-white rounded-lg shadow-md p-8">
+                <h2 class="text-2xl font-serif font-bold mb-4">Review & Publish</h2>
+                <p class="text-gray-600 mb-6">Review your book details and publish to the BookVerse marketplace.</p>
+
+                <div class="space-y-6">
+                    <!-- Book Preview -->
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-semibold mb-4">Book Preview</h3>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <img id="preview-cover" src="" alt="Book Cover" class="w-full rounded-lg shadow">
+                            </div>
+                            <div>
+                                <h4 id="preview-title" class="text-xl font-bold mb-2"></h4>
+                                <p id="preview-author" class="text-gray-600 mb-4"></p>
+                                <p id="preview-description" class="text-gray-700"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Print Specifications -->
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-semibold mb-4">Print Specifications</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-gray-600">Publishing Type</p>
+                                <p class="font-semibold text-[#FF5733]">Direct Publishing</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Binding Type</p>
+                                <p id="preview-binding" class="font-semibold"></p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Paper Type</p>
+                                <p id="preview-paper" class="font-semibold"></p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Page Count</p>
+                                <p id="preview-pages" class="font-semibold"></p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Retail Price</p>
+                                <p id="preview-price" class="font-semibold"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Terms Agreement -->
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-semibold mb-4">Terms & Conditions</h3>
+                        <div class="space-y-4">
+                            <label class="flex items-start">
+                                <input type="checkbox" id="terms-agreement" class="mt-1">
+                                <span class="ml-2 text-sm text-gray-600">
+                                    I confirm that I have the rights to publish this book and agree to BookVerse's
+                                    <a href="#" class="text-[#FF5733] hover:underline">Terms of Service</a> and
+                                    <a href="#" class="text-[#FF5733] hover:underline">Content Guidelines</a>.
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex justify-between">
+                    <button id="back-step-3" class="px-6 py-2 rounded-full text-gray-600 border border-gray-300 hover:bg-gray-100">Back</button>
+                    <button id="publish-book" class="cta-button px-6 py-2 rounded-full font-semibold" disabled>Publish Book</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Initialize variables for file storage
+        let uploadedPdfUrl = null;
+        let pageCount = 0;
+        let printingCost = 0;
+        let uploadedCoverUrl = null;
+
+        // Helper function to format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount);
+        }
+
+        // Calculate printing cost based on specifications
+        function calculatePrintingCost() {
+            const bindingType = document.getElementById('binding-type').value;
+            const paperType = document.getElementById('paper-type').value;
+            
+            // Base cost per page
+            let costPerPage = 0.02; // Standard white paper
+            if (paperType === 'premium') costPerPage = 0.03;
+            if (paperType === 'cream') costPerPage = 0.025;
+            
+            // Calculate total printing cost
+            let totalCost = pageCount * costPerPage;
+            
+            // Add binding cost
+            if (bindingType === 'hardcover') totalCost += 5;
+            else if (bindingType === 'perfect') totalCost += 2;
+            else if (bindingType === 'coil') totalCost += 3;
+            
+            return totalCost;
+        }
+
+        // Update pricing calculations
+        function updatePricing() {
+            const retailPrice = parseFloat(document.getElementById('retail-price').value) || 0;
+            printingCost = calculatePrintingCost();
+            const platformFee = retailPrice * 0.15;
+            const earnings = retailPrice - printingCost - platformFee;
+            
+            document.getElementById('printing-cost').textContent = formatCurrency(printingCost);
+            document.getElementById('platform-fee').textContent = formatCurrency(platformFee);
+            document.getElementById('earnings').textContent = formatCurrency(earnings);
+            
+            // Add warning if earnings are too low
+            const earningsElement = document.getElementById('earnings');
+            if (earnings < 1) {
+                earningsElement.classList.add('text-red-500');
+                earningsElement.classList.remove('text-[#FF5733]');
+            } else {
+                earningsElement.classList.remove('text-red-500');
+                earningsElement.classList.add('text-[#FF5733]');
+            }
+        }
+
+        // Handle PDF upload
+        async function handlePdfUpload(file) {
+            try {
+                const { url, error } = await window.uploadFile('books-pdfs', 'direct-publish', file);
+                
+                if (error) throw error;
+                
+                uploadedPdfUrl = url;
+                document.getElementById('file-name').textContent = file.name;
+                document.getElementById('file-size').textContent = formatFileSize(file.size);
+                document.getElementById('upload-status').classList.remove('hidden');
+                document.getElementById('next-step-1').disabled = false;
+                
+                // TODO: Get page count from PDF
+                pageCount = 200; // Placeholder
+                
+            } catch (error) {
+                console.error('Error uploading PDF:', error);
+                alert('Failed to upload PDF. Please try again.');
+            }
+        }
+
+        // Handle cover image upload
+        async function handleCoverUpload(file) {
+            try {
+                // Validate file type and size
+                if (!file.type.startsWith('image/')) {
+                    throw new Error('Please upload an image file (JPEG or PNG)');
+                }
+                
+                if (file.size > 5 * 1024 * 1024) {
+                    throw new Error('Image size must be less than 5MB');
+                }
+
+                const { url, error } = await window.uploadFile('books-covers', 'direct-publish', file);
+                
+                if (error) throw error;
+                
+                uploadedCoverUrl = url;
+                
+                // Update preview
+                const previewContainer = document.getElementById('cover-preview-container');
+                const preview = document.getElementById('cover-preview');
+                const uploadPrompt = document.getElementById('cover-upload-prompt');
+                const status = document.getElementById('cover-upload-status');
+                
+                preview.src = URL.createObjectURL(file);
+                previewContainer.classList.remove('hidden');
+                uploadPrompt.classList.add('hidden');
+                
+                // Update status
+                document.getElementById('cover-file-name').textContent = file.name;
+                document.getElementById('cover-file-size').textContent = formatFileSize(file.size);
+                status.classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Error uploading cover:', error);
+                alert(error.message || 'Failed to upload cover image. Please try again.');
+            }
+        }
+
+        // Handle form navigation
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set up file upload handling
+            const uploadZone = document.getElementById('upload-zone');
+            const pdfInput = document.getElementById('pdf-input');
+            
+            uploadZone.addEventListener('click', () => pdfInput.click());
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('drag-over');
+            });
+            uploadZone.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('drag-over');
+            });
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('drag-over');
+                const file = e.dataTransfer.files[0];
+                if (file && file.type === 'application/pdf') {
+                    handlePdfUpload(file);
+                }
+            });
+            
+            pdfInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) handlePdfUpload(file);
+            });
+
+            // Set up pricing calculator
+            const pricingInputs = ['retail-price', 'binding-type', 'paper-type'];
+            pricingInputs.forEach(id => {
+                document.getElementById(id).addEventListener('change', updatePricing);
+            });
+
+            // Set up cover upload handling
+            const coverUploadZone = document.getElementById('cover-upload-zone');
+            const coverInput = document.getElementById('cover-input');
+            
+            coverUploadZone.addEventListener('click', () => coverInput.click());
+            coverUploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                coverUploadZone.classList.add('drag-over');
+            });
+            coverUploadZone.addEventListener('dragleave', () => {
+                coverUploadZone.classList.remove('drag-over');
+            });
+            coverUploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                coverUploadZone.classList.remove('drag-over');
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    handleCoverUpload(file);
+                }
+            });
+            
+            coverInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) handleCoverUpload(file);
+            });
+
+            // Navigation between steps
+            document.getElementById('next-step-1').addEventListener('click', () => {
+                document.getElementById('step-1').classList.add('hidden');
+                document.getElementById('step-2').classList.remove('hidden');
+                document.querySelector('.progress-bar').style.width = '66%';
+                document.getElementById('progress-text').textContent = 'Step 2 of 3: Book Details';
+                document.getElementById('progress-percentage').textContent = '66%';
+            });
+
+            document.getElementById('back-step-2').addEventListener('click', () => {
+                document.getElementById('step-2').classList.add('hidden');
+                document.getElementById('step-1').classList.remove('hidden');
+                document.querySelector('.progress-bar').style.width = '33%';
+                document.getElementById('progress-text').textContent = 'Step 1 of 3: Upload PDF';
+                document.getElementById('progress-percentage').textContent = '33%';
+            });
+
+            document.getElementById('next-step-2').addEventListener('click', () => {
+                if (document.getElementById('book-details-form').checkValidity()) {
+                    // Update preview
+                    document.getElementById('preview-title').textContent = document.getElementById('book-title').value;
+                    document.getElementById('preview-author').textContent = `by ${document.getElementById('author-name').value}`;
+                    document.getElementById('preview-description').textContent = document.getElementById('book-description').value;
+                    document.getElementById('preview-binding').textContent = document.getElementById('binding-type').value;
+                    document.getElementById('preview-paper').textContent = document.getElementById('paper-type').value;
+                    document.getElementById('preview-pages').textContent = `${pageCount} pages`;
+                    document.getElementById('preview-price').textContent = formatCurrency(document.getElementById('retail-price').value);
+
+                    document.getElementById('step-2').classList.add('hidden');
+                    document.getElementById('step-3').classList.remove('hidden');
+                    document.querySelector('.progress-bar').style.width = '100%';
+                    document.getElementById('progress-text').textContent = 'Step 3 of 3: Review & Publish';
+                    document.getElementById('progress-percentage').textContent = '100%';
+                } else {
+                    alert('Please fill in all required fields.');
+                }
+            });
+
+            document.getElementById('back-step-3').addEventListener('click', () => {
+                document.getElementById('step-3').classList.add('hidden');
+                document.getElementById('step-2').classList.remove('hidden');
+                document.querySelector('.progress-bar').style.width = '66%';
+                document.getElementById('progress-text').textContent = 'Step 2 of 3: Book Details';
+                document.getElementById('progress-percentage').textContent = '66%';
+            });
+
+            // Enable publish button when terms are accepted
+            document.getElementById('terms-agreement').addEventListener('change', function() {
+                document.getElementById('publish-book').disabled = !this.checked;
+            });
+
+            // Handle publish
+            document.getElementById('publish-book').addEventListener('click', async () => {
+                try {
+                    if (!uploadedPdfUrl) {
+                        throw new Error('Please upload your book PDF');
+                    }
+                    if (!uploadedCoverUrl) {
+                        throw new Error('Please upload a cover image');
+                    }
+
+                    // Get the current user
+                    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+                    if (userError) throw new Error('Authentication error');
+                    if (!user) throw new Error('Please log in to publish a book');
+
+                    const campaignData = {
+                        title: document.getElementById('book-title').value,
+                        description: document.getElementById('book-description').value,
+                        genre: 'other', // You might want to add a genre selector
+                        page_count: pageCount.toString(),
+                        binding_type: document.getElementById('binding-type').value,
+                        cover_image_url: uploadedCoverUrl,
+                        pdf_url: uploadedPdfUrl,
+                        price: parseFloat(document.getElementById('retail-price').value).toFixed(2),
+                        min_purchases: 1, // For direct publishing, minimum is 1
+                        duration_days: 0, // Not applicable for direct publishing
+                        author_name: document.getElementById('author-name').value,
+                        status: 'active',
+                        user_id: user.id,
+                        is_direct_publish: true // Mark this as a direct publishing book
+                    };
+
+                    console.log('Attempting to insert campaign with data:', campaignData);
+
+                    const { data, error } = await supabaseClient
+                        .from('campaigns')
+                        .insert([campaignData])
+                        .select()
+                        .single();
+
+                    if (error) {
+                        console.error('Database error:', error);
+                        throw new Error(error.message);
+                    }
+
+                    alert('Book published successfully!');
+                    window.location.href = 'index.html';
+                } catch (error) {
+                    console.error('Error publishing book:', error);
+                    alert(error.message || 'Failed to publish book. Please try again.');
+                }
+            });
+        });
+
+        // Helper function to format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    </script>
+</body>
+</html> 

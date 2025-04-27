@@ -17,19 +17,31 @@
                         <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        <span>Failed to load required script. Please refresh the page.</span>
+                        <span>Failed to load required script: ${e.target.src.split('/').pop()}. Please refresh the page.</span>
                     </div>
                 `;
                 document.body.appendChild(errorDiv);
                 setTimeout(() => errorDiv.remove(), 5000);
             }
         }, true);
+
+        // Track script loading
+        window.scriptsLoaded = {
+            supabase: false,
+            auth: false,
+            pdf: false
+        };
+
+        function scriptLoaded(name) {
+            console.log(`Script loaded: ${name}`);
+            window.scriptsLoaded[name] = true;
+        }
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" onload="scriptLoaded('pdf')"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onload="scriptLoaded('supabase')"></script>
     <script src="js/supabase.js"></script>
-    <script src="js/auth.js"></script>
+    <script src="js/auth.js" onload="scriptLoaded('auth')"></script>
     <script>
         // Initialize PDF.js worker with error handling
         try {
@@ -496,26 +508,44 @@
 
         // Check if required scripts are loaded
         function checkScriptsLoaded() {
-            const requiredScripts = {
+            console.log('Checking script loading status:', window.scriptsLoaded);
+            
+            const missingScripts = Object.entries(window.scriptsLoaded)
+                .filter(([, loaded]) => !loaded)
+                .map(([name]) => name);
+
+            if (missingScripts.length > 0) {
+                console.error('Missing scripts:', missingScripts);
+                showError(`Required scripts not loaded: ${missingScripts.join(', ')}. Please refresh the page.`);
+                return false;
+            }
+
+            // Additional verification of script functionality
+            const functionalityCheck = {
                 'supabase': typeof supabaseClient !== 'undefined',
                 'auth': typeof checkAuth === 'function',
                 'pdf': typeof pdfjsLib !== 'undefined'
             };
 
-            const missingScripts = Object.entries(requiredScripts)
-                .filter(([, loaded]) => !loaded)
+            console.log('Checking script functionality:', functionalityCheck);
+
+            const nonFunctionalScripts = Object.entries(functionalityCheck)
+                .filter(([, working]) => !working)
                 .map(([name]) => name);
 
-            if (missingScripts.length > 0) {
-                console.error('Required scripts not loaded:', missingScripts);
-                showError(`Required scripts not loaded: ${missingScripts.join(', ')}. Please refresh the page.`);
+            if (nonFunctionalScripts.length > 0) {
+                console.error('Scripts loaded but not functioning:', nonFunctionalScripts);
+                showError(`Scripts loaded but not functioning: ${nonFunctionalScripts.join(', ')}. Please refresh the page.`);
                 return false;
             }
+
+            console.log('All scripts loaded and functioning properly');
             return true;
         }
 
         // Show error message
         function showError(message) {
+            console.error('Error:', message);
             const errorDiv = document.createElement('div');
             errorDiv.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50';
             errorDiv.innerHTML = `
@@ -534,6 +564,9 @@
         document.addEventListener('DOMContentLoaded', async function() {
             try {
                 console.log('DOM content loaded, initializing campaign creation page');
+                
+                // Wait a short moment for any remaining scripts to initialize
+                await new Promise(resolve => setTimeout(resolve, 500));
                 
                 // Check if all required scripts are loaded
                 if (!checkScriptsLoaded()) {

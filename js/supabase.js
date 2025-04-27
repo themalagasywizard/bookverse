@@ -28,45 +28,12 @@ if (typeof supabase === 'undefined') {
   console.log('Supabase client found in global scope');
 }
 
-// Initialize Supabase client if available
-let supabaseClient;
-try {
-  console.log('Attempting to initialize Supabase client...');
-  
-  if (typeof supabase !== 'undefined' && typeof supabase.createClient === 'function') {
-    console.log('Using global supabase.createClient');
-    supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
-    console.log('Supabase client initialized successfully');
-  } else if (typeof createClient === 'function') {
-    console.log('Using direct createClient function');
-    supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
-    console.log('Supabase client initialized successfully');
-  } else {
-    console.warn('Supabase client initialization failed: createClient function not available');
-    console.log('Running in mock mode');
-  }
-  
-  // Verify client has required methods
-  if (supabaseClient) {
-    console.log('Verifying Supabase client capabilities...');
-    const hasAuth = supabaseClient.auth && typeof supabaseClient.auth.getUser === 'function';
-    const hasStorage = supabaseClient.storage && typeof supabaseClient.storage.from === 'function';
-    const hasDb = typeof supabaseClient.from === 'function';
-    
-    console.log('Client capabilities:', { 
-      auth: hasAuth ? 'Available' : 'Missing',
-      storage: hasStorage ? 'Available' : 'Missing',
-      database: hasDb ? 'Available' : 'Missing'
-    });
-    
-    if (!hasAuth || !hasStorage || !hasDb) {
-      console.warn('Supabase client missing required capabilities');
-    }
-  }
-} catch (error) {
-  console.error('Error initializing Supabase:', error);
-  supabaseClient = null;
-}
+// Initialize Supabase client
+const { createClient } = supabase;
+const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+
+// Make supabaseClient available globally
+window.supabaseClient = supabaseClient;
 
 // Helper function to determine if we should use mock mode
 function shouldUseMockMode() {

@@ -5,6 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Start Publishing - BookVerse</title>
     <link rel="icon" type="image/png" href="assets/favicon.png">
+    <script>
+        // Handle script loading errors
+        window.addEventListener('error', function(e) {
+            if (e.target.tagName === 'SCRIPT') {
+                console.error('Script loading failed:', e.target.src);
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50';
+                errorDiv.innerHTML = `
+                    <div class="flex items-center">
+                        <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>Failed to load required script. Please refresh the page.</span>
+                    </div>
+                `;
+                document.body.appendChild(errorDiv);
+                setTimeout(() => errorDiv.remove(), 5000);
+            }
+        }, true);
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -474,11 +494,21 @@
         let bookPreview = null;
         let formatSettings = null;
 
-        // Check if PDF.js is loaded correctly
-        function checkPdfJsLoaded() {
-            if (typeof pdfjsLib === 'undefined') {
-                console.error('PDF.js library not loaded');
-                showError('PDF viewer library failed to load. Please refresh the page.');
+        // Check if required scripts are loaded
+        function checkScriptsLoaded() {
+            const requiredScripts = {
+                'supabase': typeof supabaseClient !== 'undefined',
+                'auth': typeof checkAuth === 'function',
+                'pdf': typeof pdfjsLib !== 'undefined'
+            };
+
+            const missingScripts = Object.entries(requiredScripts)
+                .filter(([, loaded]) => !loaded)
+                .map(([name]) => name);
+
+            if (missingScripts.length > 0) {
+                console.error('Required scripts not loaded:', missingScripts);
+                showError(`Required scripts not loaded: ${missingScripts.join(', ')}. Please refresh the page.`);
                 return false;
             }
             return true;
@@ -501,15 +531,25 @@
         }
 
         // Initialize everything when the page loads
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             try {
                 console.log('DOM content loaded, initializing campaign creation page');
                 
-                // Check if PDF.js is loaded
-                if (!checkPdfJsLoaded()) return;
+                // Check if all required scripts are loaded
+                if (!checkScriptsLoaded()) {
+                    console.error('Required scripts not loaded, aborting initialization');
+                    return;
+                }
                 
                 // Check authentication status
-                checkAuth();
+                await checkAuth();
+                
+                // Check if PDF.js is loaded
+                if (typeof pdfjsLib === 'undefined') {
+                    console.error('PDF.js library not loaded');
+                    showError('PDF viewer library failed to load. Please refresh the page.');
+                    return;
+                }
                 
                 // Set up event listeners for file uploads
                 const pdfInput = document.getElementById('pdf-input');
@@ -703,7 +743,9 @@
             const nextButton = document.getElementById('next-2');
 
             try {
-                if (!checkPdfJsLoaded()) return;
+                if (typeof pdfjsLib === 'undefined') {
+                    throw new Error('PDF.js library not loaded');
+                }
 
                 uploadStatus.innerHTML = `
                     <div class="flex items-center text-gray-600">

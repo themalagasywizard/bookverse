@@ -509,11 +509,6 @@
 
         // Initialize components with error handling
         document.addEventListener('DOMContentLoaded', async () => {
-            const isAuthenticated = await checkAuthAndRedirect();
-            if (!isAuthenticated) {
-                return; // Stop execution if not authenticated
-            }
-            
             try {
                 // Check if PDF.js is loaded
                 if (!checkPdfJsLoaded()) return;

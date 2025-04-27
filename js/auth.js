@@ -147,45 +147,71 @@ async function handleCampaignClick(e) {
     }
 }
 
-// Authentication check function
-async function checkAuthAndRedirect() {
+// Initialize on import
+initAuth();
+
+// Authentication utility functions
+
+// Check if user is authenticated
+async function isAuthenticated() {
     try {
         const { data: { user }, error } = await supabase.auth.getUser();
-        
-        if (error || !user) {
-            // Store the current page URL to redirect back after login
-            localStorage.setItem('redirectUrl', window.location.pathname);
-            window.location.href = '/login.html';
-            return false;
-        }
-        return true;
+        return !!user;
     } catch (error) {
         console.error('Auth check error:', error);
-        window.location.href = '/login.html';
         return false;
     }
 }
 
-// Function to protect pages that require authentication
-async function protectPage() {
-    const publicPages = ['/', '/index.html', '/login.html', '/signup.html', '/books.html'];
-    const currentPath = window.location.pathname;
-    
-    // Allow access to public pages
-    if (publicPages.includes(currentPath)) {
-        return;
+// Redirect to login if not authenticated
+async function requireAuth() {
+    const authenticated = await isAuthenticated();
+    if (!authenticated) {
+        // Store the current page URL to redirect back after login
+        const currentPage = window.location.pathname;
+        localStorage.setItem('redirectUrl', currentPage);
+        window.location.href = '/login.html';
+        return false;
     }
+    return true;
+}
+
+// Handle protected links
+function setupProtectedLinks() {
+    const protectedLinks = document.querySelectorAll('a[href="publish.html"], a[href="create-campaign.html"], a[href="direct-publish.html"]');
     
-    // Check authentication for protected pages
-    const isAuthenticated = await checkAuthAndRedirect();
-    if (!isAuthenticated) {
-        // The checkAuthAndRedirect function will handle the redirect
-        return;
+    protectedLinks.forEach(link => {
+        link.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const targetHref = link.getAttribute('href');
+            
+            const authenticated = await isAuthenticated();
+            if (authenticated) {
+                window.location.href = targetHref;
+            } else {
+                localStorage.setItem('redirectUrl', targetHref);
+                window.location.href = '/login.html';
+            }
+        });
+    });
+}
+
+// Check authentication on protected pages
+async function checkAuthOnProtectedPage() {
+    const protectedPages = ['publish.html', 'create-campaign.html', 'direct-publish.html'];
+    const currentPage = window.location.pathname.split('/').pop();
+    
+    if (protectedPages.includes(currentPage)) {
+        const authenticated = await isAuthenticated();
+        if (!authenticated) {
+            localStorage.setItem('redirectUrl', currentPage);
+            window.location.href = '/login.html';
+        }
     }
 }
 
-// Run protection check when the page loads
-document.addEventListener('DOMContentLoaded', protectPage);
-
-// Initialize on import
-initAuth(); 
+// Initialize auth checks when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    setupProtectedLinks();
+    checkAuthOnProtectedPage();
+}); 

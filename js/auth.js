@@ -11,6 +11,34 @@ async function isAuthenticated() {
     }
 }
 
+// Check authentication and redirect if not authenticated
+async function checkAuth() {
+    try {
+        console.log('Checking authentication status...');
+        const { data: { user }, error } = await supabaseClient.auth.getUser();
+        
+        if (error) {
+            console.error('Auth check error:', error);
+            window.location.href = 'login.html';
+            return false;
+        }
+        
+        if (!user) {
+            console.log('User not authenticated, redirecting to login...');
+            // Store the current page URL to redirect back after login
+            localStorage.setItem('redirectUrl', window.location.pathname);
+            window.location.href = 'login.html';
+            return false;
+        }
+        
+        console.log('User is authenticated:', user.email);
+        return true;
+    } catch (error) {
+        console.error('Auth check error:', error);
+        return false;
+    }
+}
+
 // Update UI based on authentication state
 function updateAuthUI(isLoggedIn, user = null) {
     const loginButtons = document.querySelectorAll('.loginBtn');

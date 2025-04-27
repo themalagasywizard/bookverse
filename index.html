@@ -319,42 +319,42 @@
         </div>
     </footer>
 
+    <!-- Scripts -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/campaigns.js"></script>
     <script>
-        // Remove the duplicate Supabase initialization and start with the event listeners
+        // Initialize when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
             // Mobile Menu Toggle
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mobileMenu = document.getElementById('mobile-menu');
 
-            mobileMenuButton.addEventListener('click', () => {
-                mobileMenu.classList.toggle('hidden');
-            });
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
 
             // Profile dropdown toggle
             const profileDropdownButton = document.getElementById('profileDropdownButton');
             const profileDropdownMenu = document.getElementById('profileDropdownMenu');
 
-            if (profileDropdownButton) {
+            if (profileDropdownButton && profileDropdownMenu) {
                 profileDropdownButton.addEventListener('click', () => {
                     profileDropdownMenu.classList.toggle('hidden');
                 });
+
+                // Close dropdown when clicking outside
+                window.addEventListener('click', (event) => {
+                    if (!profileDropdownButton.contains(event.target)) {
+                        profileDropdownMenu.classList.add('hidden');
+                    }
+                });
             }
-
-            // Close dropdown when clicking outside
-            window.addEventListener('click', (event) => {
-                if (profileDropdownButton && !profileDropdownButton.contains(event.target)) {
-                    profileDropdownMenu.classList.add('hidden');
-                }
-            });
-
-            // Load campaigns
-            loadCampaigns();
         });
-
-        // Rest of your existing JavaScript code...
     </script>
 </body>
 </html>

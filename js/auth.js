@@ -147,5 +147,45 @@ async function handleCampaignClick(e) {
     }
 }
 
+// Authentication check function
+async function checkAuthAndRedirect() {
+    try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        if (error || !user) {
+            // Store the current page URL to redirect back after login
+            localStorage.setItem('redirectUrl', window.location.pathname);
+            window.location.href = '/login.html';
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.error('Auth check error:', error);
+        window.location.href = '/login.html';
+        return false;
+    }
+}
+
+// Function to protect pages that require authentication
+async function protectPage() {
+    const publicPages = ['/', '/index.html', '/login.html', '/signup.html', '/books.html'];
+    const currentPath = window.location.pathname;
+    
+    // Allow access to public pages
+    if (publicPages.includes(currentPath)) {
+        return;
+    }
+    
+    // Check authentication for protected pages
+    const isAuthenticated = await checkAuthAndRedirect();
+    if (!isAuthenticated) {
+        // The checkAuthAndRedirect function will handle the redirect
+        return;
+    }
+}
+
+// Run protection check when the page loads
+document.addEventListener('DOMContentLoaded', protectPage);
+
 // Initialize on import
 initAuth(); 

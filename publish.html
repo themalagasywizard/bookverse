@@ -88,6 +88,7 @@
     <header class="bg-white shadow-md sticky top-0 z-50">
         <nav class="container mx-auto px-6 py-3">
             <div class="flex justify-between items-center">
+                <!-- Logo -->
                 <a href="index.html" class="flex items-center">
                     <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" class="mr-2">
                         <!-- Book base -->
@@ -110,9 +111,34 @@
                     </svg>
                     <span class="text-xl font-bold font-serif text-[#333]">BookVerse</span>
                 </a>
-                <button id="save-draft" class="px-4 py-2 border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100">
+
+                <!-- Save Draft Button -->
+                <button id="save-draft" class="px-4 py-2 border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 transition-colors duration-300">
                     Save Draft
                 </button>
+
+                <!-- User Profile -->
+                <div class="flex items-center space-x-4">
+                    <div class="relative" id="userProfileDropdown">
+                        <button id="profileDropdownButton" class="flex items-center space-x-2 focus:outline-none">
+                            <div class="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
+                                <img id="headerAvatar" src="" alt="User Avatar" class="w-full h-full object-cover hidden">
+                                <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                                </svg>
+                            </div>
+                            <span id="headerUserName" class="text-gray-700">Ryan Trumble</span>
+                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        
+                        <div id="profileDropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md py-1 z-50">
+                            <a href="profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">View Profile</a>
+                            <a href="#" class="signOutBtn block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign Out</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </nav>
     </header>

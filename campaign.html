@@ -4,12 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Campaign Details - BookVerse</title>
-    <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/tailwindlabs/tailwindcss/master/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/auth.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Georgia&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        /* Custom styles */
         body {
             font-family: 'Roboto', sans-serif;
         }
@@ -31,20 +37,105 @@
     </style>
 </head>
 <body class="bg-gray-50">
-    <!-- Header will be loaded dynamically -->
-    <div id="header-placeholder"></div>
-
-    <!-- Loading State -->
-    <div id="loading" class="fixed inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50">
-        <div class="text-center">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF5733] mb-4"></div>
-            <p class="text-gray-600">Loading campaign details...</p>
+    <!-- Header Section -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-3 max-w-6xl flex justify-between items-center">
+            <a href="index.html" class="flex items-center">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" class="mr-2">
+                    <!-- Book base -->
+                    <path d="M5 30C5 27.2386 7.23858 25 10 25H30C32.7614 25 35 27.2386 35 30V32C35 33.1046 34.1046 34 33 34H7C5.89543 34 5 33.1046 5 32V30Z" fill="#FF5733"/>
+                    <!-- Book pages -->
+                    <path d="M8 25V10C8 8.89543 8.89543 8 10 8H30C31.1046 8 32 8.89543 32 10V25" fill="white" stroke="#333333" stroke-width="1.5"/>
+                    <!-- Tree trunk -->
+                    <path d="M20 8V20" stroke="#5D4037" stroke-width="2" stroke-linecap="round"/>
+                    <!-- Tree branches -->
+                    <path d="M15 15L20 10L25 15" stroke="#5D4037" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M13 19L20 12L27 19" stroke="#5D4037" stroke-width="1.5" stroke-linecap="round"/>
+                    <!-- Tree leaves -->
+                    <circle cx="20" cy="7" r="3" fill="#4CAF50"/>
+                    <circle cx="16" cy="10" r="2" fill="#4CAF50"/>
+                    <circle cx="24" cy="10" r="2" fill="#4CAF50"/>
+                    <circle cx="14" cy="14" r="2" fill="#4CAF50"/>
+                    <circle cx="26" cy="14" r="2" fill="#4CAF50"/>
+                    <circle cx="12" cy="18" r="2" fill="#4CAF50"/>
+                    <circle cx="28" cy="18" r="2" fill="#4CAF50"/>
+                </svg>
+                <span class="text-xl font-bold font-serif text-[#333]">BookVerse</span>
+            </a>
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="index.html" class="text-gray-600 hover:text-[#FF5733] hover:underline">Home</a>
+                <a href="books.html" class="text-gray-600 hover:text-[#FF5733] hover:underline">Books</a>
+                <a href="index.html#how-it-works" class="text-gray-600 hover:text-[#FF5733] hover:underline">How It Works</a>
+                
+                <!-- User Login Button -->
+                <a href="login.html" class="loginBtn text-gray-600 hover:text-[#FF5733] hover:underline">Login</a>
+                
+                <!-- User Profile Dropdown -->
+                <div class="hidden relative" id="userProfileDropdown">
+                    <button id="profileDropdownButton" class="flex items-center space-x-2 focus:outline-none">
+                        <div class="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
+                            <img id="headerAvatar" src="" alt="User Avatar" class="w-full h-full object-cover hidden">
+                            <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                            </svg>
+                        </div>
+                        <span id="headerUserName" class="text-gray-700">User</span>
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    
+                    <div id="profileDropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md py-1 z-50">
+                        <a href="profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+                        <a href="#" class="signOutBtn block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign Out</a>
+                    </div>
+                </div>
+                
+                <a href="publish.html" class="cta-button px-8 py-3 rounded-full font-semibold text-lg shadow-lg inline-block">Start Publishing</a>
+            </div>
+            <!-- Mobile Menu Button -->
+            <div class="md:hidden flex items-center">
+                <button id="mobile-menu-button" class="text-gray-600 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+        </nav>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="md:hidden hidden bg-white py-4 px-6 absolute top-full left-0 w-full shadow-lg">
+            <a href="index.html" class="block py-2 text-gray-600 hover:text-[#FF5733]">Home</a>
+            <a href="books.html" class="block py-2 text-gray-600 hover:text-[#FF5733]">Books</a>
+            <a href="index.html#how-it-works" class="block py-2 text-gray-600 hover:text-[#FF5733]">How It Works</a>
+            <a href="login.html" class="loginBtn block py-2 text-gray-600 hover:text-[#FF5733]">Login</a>
+            
+            <!-- Mobile User Profile -->
+            <div id="mobileUserProfile" class="hidden py-2">
+                <div class="flex items-center px-2 py-2 text-gray-600 hover:text-[#FF5733]">
+                    <div class="w-6 h-6 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center mr-2">
+                        <img id="mobileAvatar" src="" alt="User Avatar" class="w-full h-full object-cover hidden">
+                        <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                        </svg>
+                    </div>
+                    <span id="mobileUserName">User</span>
+                </div>
+                <a href="profile.html" class="block py-2 px-8 text-gray-600 hover:text-[#FF5733]">View Profile</a>
+                <button class="signOutBtn block py-2 px-8 text-gray-600 hover:text-[#FF5733] w-full text-left">Sign Out</button>
+            </div>
+            
+            <a href="publish.html" class="block mt-4 cta-button text-center px-6 py-2 rounded-full font-semibold text-sm shadow-md">Start Publishing</a>
         </div>
-    </div>
+    </header>
 
-    <!-- Main Content -->
     <main class="container mx-auto px-4 py-8 max-w-6xl">
-        <!-- Campaign Details Section -->
+        <!-- Loading State -->
+        <div id="campaign-loading" class="text-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF5733] mx-auto"></div>
+            <p class="mt-4 text-gray-600">Loading campaign details...</p>
+        </div>
+
+        <!-- Campaign Details -->
         <div id="campaign-details" class="hidden">
             <!-- Book Cover and Basic Info -->
             <div class="grid md:grid-cols-3 gap-8 mb-12">
@@ -136,17 +227,7 @@
         </div>
     </main>
 
-    <!-- Footer will be loaded dynamically -->
-    <div id="footer-placeholder"></div>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // Initialize Supabase client
-        const supabaseUrl = 'https://qcnqdwylsxgpnoogcuhm.supabase.co';
-        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjbnFkd3lsc3hncG5vb2djdWhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUyNDY4NTEsImV4cCI6MjA2MDgyMjg1MX0.4z2ZSBfJLSSReG5KLZXrEUVN8n2HU1EuSvsy98sPEgY';
-        const { createClient } = supabase;
-        const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
-
         // Helper function to format currency
         function formatCurrency(amount) {
             return new Intl.NumberFormat('en-US', {
@@ -169,7 +250,7 @@
             const end = new Date(endDate);
             const now = new Date();
             const diff = end - now;
-            return Math.ceil(diff / (1000 * 60 * 60 * 24));
+            return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
         }
 
         // Load campaign details
@@ -182,6 +263,11 @@
                 if (!campaignId) {
                     throw new Error('No campaign ID provided');
                 }
+
+                // Show loading state
+                document.getElementById('campaign-loading').classList.remove('hidden');
+                document.getElementById('campaign-details').classList.add('hidden');
+                document.getElementById('error-message').classList.add('hidden');
 
                 // Fetch campaign details
                 const { data: campaign, error } = await supabaseClient
@@ -215,6 +301,7 @@
                 // Update campaign status section based on publishing type
                 const campaignStatus = document.getElementById('campaign-status');
                 const backButton = document.getElementById('back-button');
+                const campaignPrice = document.getElementById('campaign-price');
                 
                 if (campaign.is_direct_publish) {
                     // Direct Publishing UI
@@ -259,19 +346,22 @@
                 }
                 
                 // Set price
-                document.getElementById('campaign-price').textContent = formatCurrency(campaign.price);
+                campaignPrice.textContent = formatCurrency(campaign.price);
+
+                // Add click handler for back/buy button
+                backButton.addEventListener('click', () => handleBackBook(campaign));
 
                 // Load similar books
-                loadSimilarBooks(campaign.genre);
+                await loadSimilarBooks(campaign.genre);
 
                 // Show the details and hide loading state
-                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('campaign-loading').classList.add('hidden');
                 document.getElementById('campaign-details').classList.remove('hidden');
                 document.getElementById('error-message').classList.add('hidden');
 
             } catch (error) {
                 console.error('Error loading campaign:', error);
-                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('campaign-loading').classList.add('hidden');
                 document.getElementById('campaign-details').classList.add('hidden');
                 document.getElementById('error-message').classList.remove('hidden');
             }
@@ -292,14 +382,10 @@
 
                 if (campaign.is_direct_publish) {
                     // Handle direct purchase
-                    // TODO: Implement payment processing for direct purchase
-                    alert('Proceeding to checkout...');
-                    // window.location.href = `checkout.html?book=${campaign.id}`;
+                    window.location.href = `checkout.html?book=${campaign.id}`;
                 } else {
                     // Handle campaign backing
-                    // TODO: Implement campaign backing process
-                    alert('Processing campaign backing...');
-                    // window.location.href = `back-campaign.html?campaign=${campaign.id}`;
+                    window.location.href = `back-campaign.html?campaign=${campaign.id}`;
                 }
             } catch (error) {
                 console.error('Error handling book action:', error);
@@ -334,11 +420,42 @@
 
             } catch (error) {
                 console.error('Error loading similar books:', error);
+                document.getElementById('similar-books').innerHTML = '<p class="text-gray-500">Failed to load similar books</p>';
             }
         }
 
-        // Load campaign details when the page loads
-        document.addEventListener('DOMContentLoaded', loadCampaignDetails);
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mobile Menu Toggle
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+
+            // Profile dropdown toggle
+            const profileDropdownButton = document.getElementById('profileDropdownButton');
+            const profileDropdownMenu = document.getElementById('profileDropdownMenu');
+
+            if (profileDropdownButton && profileDropdownMenu) {
+                profileDropdownButton.addEventListener('click', () => {
+                    profileDropdownMenu.classList.toggle('hidden');
+                });
+
+                // Close dropdown when clicking outside
+                window.addEventListener('click', (event) => {
+                    if (!profileDropdownButton.contains(event.target)) {
+                        profileDropdownMenu.classList.add('hidden');
+                    }
+                });
+            }
+
+            // Load campaign details
+            loadCampaignDetails();
+        });
     </script>
 </body>
 </html> 

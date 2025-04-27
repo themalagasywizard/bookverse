@@ -54,19 +54,20 @@
             </a>
             <div class="hidden md:flex items-center space-x-6">
                 <a href="index.html" class="text-gray-600 hover:text-[#FF5733] hover:underline">Home</a>
-                <a href="index.html#campaigns" class="text-gray-600 hover:text-[#FF5733] hover:underline">Browse Campaigns</a>
+                <a href="books.html" class="text-gray-600 hover:text-[#FF5733] hover:underline">Books</a>
                 <a href="index.html#how-it-works" class="text-gray-600 hover:text-[#FF5733] hover:underline">How It Works</a>
-                <a href="index.html#contact" class="text-gray-600 hover:text-[#FF5733] hover:underline">Contact</a>
                 
                 <!-- User Profile Dropdown -->
                 <div class="relative" id="userProfileDropdown">
                     <button id="profileDropdownButton" class="flex items-center space-x-2 focus:outline-none">
                         <div class="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
                             <img id="headerAvatar" src="" alt="User Avatar" class="w-full h-full object-cover hidden">
-                            <span id="headerInitials" class="text-sm font-medium text-gray-600">UN</span>
+                            <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                            </svg>
                         </div>
-                        <span id="headerUserName" class="text-gray-700">User Name</span>
-                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <span id="headerUserName" class="text-gray-700">User</span>
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                         </svg>
                     </button>
@@ -76,7 +77,7 @@
                     </div>
                 </div>
                 
-                <a href="create-campaign.html" class="cta-button px-6 py-2 rounded-full font-semibold text-sm shadow-md">Start a Campaign</a>
+                <a href="publish.html" class="cta-button px-6 py-2 rounded-full font-semibold text-sm shadow-md">Start Publishing</a>
             </div>
             <!-- Mobile Menu Button -->
             <div class="md:hidden flex items-center">
@@ -90,16 +91,15 @@
         <!-- Mobile Menu -->
         <div id="mobile-menu" class="md:hidden hidden bg-white py-4 px-6 absolute top-full left-0 w-full shadow-lg">
             <a href="index.html" class="block py-2 text-gray-600 hover:text-[#FF5733]">Home</a>
-            <a href="index.html#campaigns" class="block py-2 text-gray-600 hover:text-[#FF5733]">Browse Campaigns</a>
+            <a href="books.html" class="block py-2 text-gray-600 hover:text-[#FF5733]">Books</a>
             <a href="index.html#how-it-works" class="block py-2 text-gray-600 hover:text-[#FF5733]">How It Works</a>
-            <a href="index.html#contact" class="block py-2 text-gray-600 hover:text-[#FF5733]">Contact</a>
             
             <!-- Mobile User Profile -->
             <div class="py-2">
                 <button class="signOutBtn block py-2 text-gray-600 hover:text-[#FF5733] w-full text-left">Sign Out</button>
             </div>
             
-            <a href="create-campaign.html" class="block mt-4 cta-button text-center px-6 py-2 rounded-full font-semibold text-sm shadow-md">Start a Campaign</a>
+            <a href="publish.html" class="block mt-4 cta-button text-center px-6 py-2 rounded-full font-semibold text-sm shadow-md">Start Publishing</a>
         </div>
     </header>
 
@@ -238,13 +238,6 @@
             });
         });
 
-        // Require authentication for this page
-        checkAuth().then(isLoggedIn => {
-            if (!isLoggedIn) {
-                window.location.href = 'login.html';
-            }
-        });
-
         // Check if user is logged in
         async function checkAuth() {
             try {
@@ -252,6 +245,10 @@
                 
                 if (error || !data.user) {
                     console.error('Auth error:', error?.message);
+                    // Only redirect if we're on the profile page
+                    if (window.location.pathname.endsWith('profile.html')) {
+                        window.location.href = 'login.html';
+                    }
                     return false;
                 }
                 
@@ -260,49 +257,63 @@
                 return true;
             } catch (error) {
                 console.error('Auth check failed:', error.message);
+                // Only redirect if we're on the profile page
+                if (window.location.pathname.endsWith('profile.html')) {
+                    window.location.href = 'login.html';
+                }
                 return false;
             }
         }
         
         // Update header with user info
         function updateHeaderUserInfo(user) {
-            // Set user name in header
-            const displayName = user.user_metadata?.full_name || user.email || 'User';
-            headerUserName.textContent = displayName;
-            
-            // Get user initials
-            const initials = getInitials(displayName);
-            headerInitials.textContent = initials;
-            avatarInitials.textContent = initials;
-            
-            // Check if avatar URL is valid (not a blob URL or empty)
-            const avatarUrl = user.user_metadata?.avatar_url;
-            const isValidUrl = avatarUrl && 
-                               avatarUrl.trim() !== '' && 
-                               !avatarUrl.startsWith('blob:');
-            
-            if (isValidUrl) {
-                // Set avatar if available and valid
-                headerAvatar.src = avatarUrl;
-                headerAvatar.classList.remove('hidden');
-                headerInitials.classList.add('hidden');
+            try {
+                // Get all required elements
+                const headerUserName = document.getElementById('headerUserName');
+                const headerAvatar = document.getElementById('headerAvatar');
+                const avatarPreview = document.getElementById('avatarPreview');
+                const avatarInitials = document.getElementById('avatarInitials');
                 
-                avatarPreview.src = avatarUrl;
-                avatarPreview.classList.remove('hidden');
-                avatarInitials.classList.add('hidden');
-            } else {
-                // If we find an invalid blob URL in metadata, let's fix it
-                if (avatarUrl && avatarUrl.startsWith('blob:')) {
-                    console.log('Found invalid blob URL in user metadata. Will fix on next save.');
-                    // We could automatically fix it here, but for now just log
+                // Set user name in header if element exists
+                const displayName = user.user_metadata?.full_name || user.email || 'User';
+                if (headerUserName) {
+                    headerUserName.textContent = displayName;
                 }
                 
-                // Show initials instead
-                headerAvatar.classList.add('hidden');
-                headerInitials.classList.remove('hidden');
+                // Check if avatar URL is valid
+                const avatarUrl = user.user_metadata?.avatar_url;
+                const isValidUrl = avatarUrl && 
+                                 avatarUrl.trim() !== '' && 
+                                 !avatarUrl.startsWith('blob:');
                 
-                avatarPreview.classList.add('hidden');
-                avatarInitials.classList.remove('hidden');
+                // Update avatar preview if element exists
+                if (avatarPreview) {
+                    if (isValidUrl) {
+                        avatarPreview.src = avatarUrl;
+                        avatarPreview.classList.remove('hidden');
+                        if (avatarInitials) {
+                            avatarInitials.classList.add('hidden');
+                        }
+                    } else {
+                        avatarPreview.classList.add('hidden');
+                        if (avatarInitials) {
+                            avatarInitials.classList.remove('hidden');
+                            avatarInitials.textContent = getInitials(displayName);
+                        }
+                    }
+                }
+                
+                // Update header avatar if element exists
+                if (headerAvatar) {
+                    if (isValidUrl) {
+                        headerAvatar.src = avatarUrl;
+                        headerAvatar.classList.remove('hidden');
+                    } else {
+                        headerAvatar.classList.add('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating user info:', error);
             }
         }
         

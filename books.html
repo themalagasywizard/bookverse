@@ -80,7 +80,6 @@
                 <a href="index.html" class="text-gray-600 hover:text-[#FF5733] hover:underline">Home</a>
                 <a href="books.html" class="text-gray-600 hover:text-[#FF5733] hover:underline font-medium text-[#FF5733]">Books</a>
                 <a href="index.html#how-it-works" class="text-gray-600 hover:text-[#FF5733] hover:underline">How It Works</a>
-                <a href="index.html#contact" class="text-gray-600 hover:text-[#FF5733] hover:underline">Contact</a>
                 
                 <!-- User Login Button -->
                 <a href="login.html" class="loginBtn text-gray-600 hover:text-[#FF5733] hover:underline">Login</a>
@@ -90,10 +89,12 @@
                     <button id="profileDropdownButton" class="flex items-center space-x-2 focus:outline-none">
                         <div class="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
                             <img id="headerAvatar" src="" alt="User Avatar" class="w-full h-full object-cover hidden">
-                            <span id="headerInitials" class="text-sm font-medium text-gray-600">UN</span>
+                            <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                            </svg>
                         </div>
-                        <span id="headerUserName" class="text-gray-700">User Name</span>
-                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <span id="headerUserName" class="text-gray-700">User</span>
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                         </svg>
                     </button>
@@ -120,7 +121,6 @@
             <a href="index.html" class="block py-2 text-gray-600 hover:text-[#FF5733]">Home</a>
             <a href="books.html" class="block py-2 text-gray-600 hover:text-[#FF5733] font-medium text-[#FF5733]">Books</a>
             <a href="index.html#how-it-works" class="block py-2 text-gray-600 hover:text-[#FF5733]">How It Works</a>
-            <a href="index.html#contact" class="block py-2 text-gray-600 hover:text-[#FF5733]">Contact</a>
             <a href="login.html" class="loginBtn block py-2 text-gray-600 hover:text-[#FF5733]">Login</a>
             
             <!-- Mobile User Profile -->
@@ -128,9 +128,11 @@
                 <div class="flex items-center px-2 py-2 text-gray-600 hover:text-[#FF5733]">
                     <div class="w-6 h-6 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center mr-2">
                         <img id="mobileAvatar" src="" alt="User Avatar" class="w-full h-full object-cover hidden">
-                        <span id="mobileInitials" class="text-xs font-medium text-gray-600">UN</span>
+                        <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                        </svg>
                     </div>
-                    <span id="mobileUserName">User Name</span>
+                    <span id="mobileUserName">User</span>
                 </div>
                 <a href="profile.html" class="block py-2 px-8 text-gray-600 hover:text-[#FF5733]">View Profile</a>
                 <button class="signOutBtn block py-2 px-8 text-gray-600 hover:text-[#FF5733] w-full text-left">Sign Out</button>
@@ -796,13 +798,18 @@
             
             // Set user name
             const displayName = user.user_metadata?.full_name || user.email || 'User';
-            document.getElementById('headerUserName').textContent = displayName;
-            document.getElementById('mobileUserName').textContent = displayName;
+            const headerUserNameEl = document.getElementById('headerUserName');
+            const mobileUserNameEl = document.getElementById('mobileUserName');
+            
+            if (headerUserNameEl) headerUserNameEl.textContent = displayName;
+            if (mobileUserNameEl) mobileUserNameEl.textContent = displayName;
             
             // Get user initials for avatar placeholder
             const initials = getInitials(displayName);
-            document.getElementById('headerInitials').textContent = initials;
-            document.getElementById('mobileInitials').textContent = initials;
+            
+            // Get all required elements
+            const headerAvatar = document.getElementById('headerAvatar');
+            const mobileAvatar = document.getElementById('mobileAvatar');
             
             // Check if avatar URL is valid
             const avatarUrl = user.user_metadata?.avatar_url;
@@ -810,29 +817,22 @@
                                avatarUrl.trim() !== '' && 
                                !avatarUrl.startsWith('blob:');
             
-            const headerAvatar = document.getElementById('headerAvatar');
-            const mobileAvatar = document.getElementById('mobileAvatar');
-            const headerInitials = document.getElementById('headerInitials');
-            const mobileInitials = document.getElementById('mobileInitials');
+            if (headerAvatar) {
+                if (isValidUrl) {
+                    headerAvatar.src = avatarUrl;
+                    headerAvatar.classList.remove('hidden');
+                } else {
+                    headerAvatar.classList.add('hidden');
+                }
+            }
             
-            if (isValidUrl) {
-                // Update desktop header avatar
-                headerAvatar.src = avatarUrl;
-                headerAvatar.classList.remove('hidden');
-                headerInitials.classList.add('hidden');
-                
-                // Update mobile avatar
-                mobileAvatar.src = avatarUrl;
-                mobileAvatar.classList.remove('hidden');
-                mobileInitials.classList.add('hidden');
-            } else {
-                // Show initials for desktop header
-                headerAvatar.classList.add('hidden');
-                headerInitials.classList.remove('hidden');
-                
-                // Show initials for mobile
-                mobileAvatar.classList.add('hidden');
-                mobileInitials.classList.remove('hidden');
+            if (mobileAvatar) {
+                if (isValidUrl) {
+                    mobileAvatar.src = avatarUrl;
+                    mobileAvatar.classList.remove('hidden');
+                } else {
+                    mobileAvatar.classList.add('hidden');
+                }
             }
         }
 

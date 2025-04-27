@@ -474,13 +474,6 @@
         let bookPreview = null;
         let formatSettings = null;
 
-        // Initialize Supabase at the top level
-        const { createClient } = supabase;
-        const supabaseClient = createClient(
-            'https://qcnqdwylsxgpnoogcuhm.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjbnFkd3lsc3hncG5vb2djdWhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUyNDY4NTEsImV4cCI6MjA2MDgyMjg1MX0.4z2ZSBfJLSSReG5KLZXrEUVN8n2HU1EuSvsy98sPEgY'
-        );
-
         // Check if PDF.js is loaded correctly
         function checkPdfJsLoaded() {
             if (typeof pdfjsLib === 'undefined') {
@@ -507,11 +500,20 @@
             setTimeout(() => errorDiv.remove(), 5000);
         }
 
-        // Initialize components with error handling
-        document.addEventListener('DOMContentLoaded', async () => {
+        // Initialize everything when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
             try {
+                console.log('DOM content loaded, initializing campaign creation page');
+                
                 // Check if PDF.js is loaded
                 if (!checkPdfJsLoaded()) return;
+                
+                // Check authentication status
+                checkAuth();
+                
+                // Set up event listeners for file uploads
+                const pdfInput = document.getElementById('pdf-input');
+                const coverInput = document.getElementById('cover-image');
 
                 // Add event listener for Step 1 Next button
                 document.getElementById('next-1')?.addEventListener('click', () => {
@@ -520,7 +522,6 @@
 
                 // Set up file upload
                 const uploadZone = document.getElementById('upload-zone');
-                const pdfInput = document.getElementById('pdf-input');
                 const uploadStatus = document.getElementById('upload-status');
                 const nextButton = document.getElementById('next-2');
 
@@ -670,10 +671,6 @@
                 publishButton?.addEventListener('click', handlePublish);
 
                 // Add cover image upload handling
-                const coverInput = document.getElementById('cover-image');
-                const coverPreviewContainer = document.getElementById('cover-preview-container');
-                const coverPreviewImage = document.getElementById('cover-preview-image');
-
                 coverInput?.addEventListener('change', (e) => {
                     const file = e.target.files[0];
                     if (file) {
@@ -688,15 +685,15 @@
 
                         const reader = new FileReader();
                         reader.onload = (e) => {
-                            coverPreviewImage.src = e.target.result;
-                            coverPreviewContainer.classList.remove('hidden');
+                            document.getElementById('cover-preview-image').src = e.target.result;
+                            document.getElementById('cover-preview-container').classList.remove('hidden');
                         };
                         reader.readAsDataURL(file);
                     }
                 });
             } catch (error) {
-                console.error('Initialization error:', error);
-                showError('Failed to initialize the page. Please refresh and try again.');
+                console.error('Error initializing campaign creation page:', error);
+                showError('An error occurred. Please refresh the page.');
             }
         });
 

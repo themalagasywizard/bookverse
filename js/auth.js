@@ -190,7 +190,7 @@ function setupProtectedLinks() {
                 window.location.href = targetHref;
             } else {
                 localStorage.setItem('redirectUrl', targetHref);
-                window.location.href = '/login.html';
+                window.location.href = 'login.html';
             }
         });
     });
@@ -205,13 +205,45 @@ async function checkAuthOnProtectedPage() {
         const authenticated = await isAuthenticated();
         if (!authenticated) {
             localStorage.setItem('redirectUrl', currentPage);
-            window.location.href = '/login.html';
+            window.location.href = 'login.html';
+            return false;
         }
     }
+    return true;
 }
 
 // Initialize auth checks when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Check if we're on a protected page
+    await checkAuthOnProtectedPage();
+    
+    // Setup protected links
     setupProtectedLinks();
-    checkAuthOnProtectedPage();
-}); 
+    
+    // Check initial auth state
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (user && !error) {
+        updateAuthUI(true, user);
+    } else {
+        updateAuthUI(false);
+    }
+    
+    // Listen for auth state changes
+    supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+            updateAuthUI(true, session.user);
+        } else if (event === 'SIGNED_OUT') {
+            updateAuthUI(false);
+        }
+    });
+});
+
+// Get user initials for avatar
+function getInitials(name) {
+    if (!name) return 'UN';
+    const parts = name.split(/[\s.-_@]+/);
+    if (parts.length >= 2) {
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return (parts[0][0] + (parts[0][1] || 'N')).toUpperCase();
+} 

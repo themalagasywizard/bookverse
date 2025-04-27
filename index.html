@@ -323,319 +323,38 @@
     <script src="js/supabase.js"></script>
     <script src="js/auth.js"></script>
     <script>
-        // Initialize Supabase client
-        const supabaseUrl = 'https://qcnqdwylsxgpnoogcuhm.supabase.co';
-        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjbnFkd3lsc3hncG5vb2djdWhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUyNDY4NTEsImV4cCI6MjA2MDgyMjg1MX0.4z2ZSBfJLSSReG5KLZXrEUVN8n2HU1EuSvsy98sPEgY';
-        
-        // Create Supabase client
-        const { createClient } = supabase;
-        const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
-        
-        // Mobile Menu Toggle
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        const mobileMenu = document.getElementById('mobile-menu');
+        // Remove the duplicate Supabase initialization and start with the event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mobile Menu Toggle
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
 
-        mobileMenuButton.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
-        });
-
-        // Authentication elements
-        const loginButtons = document.querySelectorAll('.loginBtn');
-        const signOutButtons = document.querySelectorAll('.signOutBtn');
-        const userProfileDropdown = document.getElementById('userProfileDropdown');
-        const mobileUserProfile = document.getElementById('mobileUserProfile');
-        const headerUserName = document.getElementById('headerUserName');
-        const mobileUserName = document.getElementById('mobileUserName');
-        const headerAvatar = document.getElementById('headerAvatar');
-        const mobileAvatar = document.getElementById('mobileAvatar');
-        const headerInitials = document.getElementById('headerInitials');
-        const mobileInitials = document.getElementById('mobileInitials');
-        const profileDropdownButton = document.getElementById('profileDropdownButton');
-        const profileDropdownMenu = document.getElementById('profileDropdownMenu');
-        const campaignButtons = document.querySelectorAll('a[href="publish.html"]');
-
-        // Set up campaign buttons to check login status
-        campaignButtons.forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                e.preventDefault();
-                const isLoggedIn = await checkAuth();
-                
-                if (isLoggedIn) {
-                    // User is logged in, proceed to campaign creation
-                    window.location.href = 'publish.html';
-                } else {
-                    // User is not logged in, redirect to login page
-                    // Store the intended destination for redirect after login
-                    localStorage.setItem('redirectUrl', 'publish.html');
-                    window.location.href = 'login.html';
-                }
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
             });
-        });
 
-        // Toggle profile dropdown
-        profileDropdownButton?.addEventListener('click', () => {
-            profileDropdownMenu.classList.toggle('hidden');
-        });
+            // Profile dropdown toggle
+            const profileDropdownButton = document.getElementById('profileDropdownButton');
+            const profileDropdownMenu = document.getElementById('profileDropdownMenu');
 
-        // Close dropdown when clicking outside
-        window.addEventListener('click', (event) => {
-            if (!profileDropdownButton?.contains(event.target)) {
-                profileDropdownMenu.classList.add('hidden');
-            }
-        });
-
-        // Check authentication state
-        async function checkAuth() {
-            try {
-                const { data, error } = await supabaseClient.auth.getUser();
-                if (error || !data.user) {
-                    // User is not logged in
-                    showLoginButtons();
-                    return false;
-                } else {
-                    // User is logged in
-                    showProfileButtons(data.user);
-                    return true;
-                }
-            } catch (error) {
-                console.error('Auth check error:', error);
-                showLoginButtons();
-                return false;
-            }
-        }
-
-        // Show login buttons, hide profile and sign out buttons
-        function showLoginButtons() {
-            loginButtons.forEach(btn => btn.classList.remove('hidden'));
-            userProfileDropdown.classList.add('hidden');
-            mobileUserProfile.classList.add('hidden');
-        }
-
-        // Show profile and sign out buttons, hide login buttons
-        function showProfileButtons(user) {
-            loginButtons.forEach(btn => btn.classList.add('hidden'));
-            userProfileDropdown.classList.remove('hidden');
-            mobileUserProfile.classList.remove('hidden');
-            
-            // Set user name
-            const displayName = user.user_metadata?.full_name || user.email || 'User';
-            headerUserName.textContent = displayName;
-            mobileUserName.textContent = displayName;
-            
-            // Get user initials for avatar placeholder
-            const initials = getInitials(displayName);
-            headerInitials.textContent = initials;
-            mobileInitials.textContent = initials;
-            
-            // Check if avatar URL is valid (not a blob URL or empty)
-            const avatarUrl = user.user_metadata?.avatar_url;
-            const isValidUrl = avatarUrl && 
-                               avatarUrl.trim() !== '' && 
-                               !avatarUrl.startsWith('blob:');
-            
-            if (isValidUrl) {
-                // Update desktop header avatar
-                headerAvatar.src = avatarUrl;
-                headerAvatar.classList.remove('hidden');
-                headerInitials.classList.add('hidden');
-                
-                // Update mobile avatar
-                mobileAvatar.src = avatarUrl;
-                mobileAvatar.classList.remove('hidden');
-                mobileInitials.classList.add('hidden');
-            } else {
-                // If we find an invalid blob URL in metadata, we'll just show initials
-                if (avatarUrl && avatarUrl.startsWith('blob:')) {
-                    console.log('Found invalid blob URL in user metadata');
-                    // Blob URLs won't work across page loads, so show initials instead
-                }
-                
-                // Show initials for desktop header
-                headerAvatar.classList.add('hidden');
-                headerInitials.classList.remove('hidden');
-                
-                // Show initials for mobile
-                mobileAvatar.classList.add('hidden');
-                mobileInitials.classList.remove('hidden');
-            }
-            
-            console.log('User is logged in:', user.email);
-        }
-
-        // Generate initials from name
-        function getInitials(name) {
-            if (!name) return 'UN';
-            
-            // Split the name by spaces, dashes, dots, etc.
-            const parts = name.split(/[\s.-_@]+/);
-            
-            if (parts.length >= 2) {
-                // Get first letter of first and last parts
-                return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-            } else if (parts.length === 1 && parts[0].length >= 2) {
-                // Get first two letters of single name/email
-                return parts[0].substring(0, 2).toUpperCase();
-            } else if (parts.length === 1) {
-                // Get first letter of single name/email
-                return parts[0][0].toUpperCase() + 'N';
-            } else {
-                return 'UN';
-            }
-        }
-
-        // Handle sign out
-        signOutButtons.forEach(btn => {
-            btn.addEventListener('click', async () => {
-                try {
-                    const { error } = await supabaseClient.auth.signOut();
-                    if (error) throw error;
-                    
-                    // Clear login state
-                    localStorage.removeItem('isLoggedIn');
-                    localStorage.removeItem('userEmail');
-                    
-                    // Update UI
-                    showLoginButtons();
-                    
-                    console.log('User signed out successfully');
-                } catch (error) {
-                    console.error('Sign out error:', error);
-                }
-            });
-        });
-
-        // Check authentication state on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            checkAuth();
-        });
-
-        // Intersection Observer for Fade-in Animations
-        const sectionsToFade = document.querySelectorAll('.fade-in-section');
-        const observerOptions = {
-            root: null,
-            rootMargin: '0px',
-            threshold: 0.1
-        };
-
-        const observerCallback = (entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
-            });
-        };
-
-        const observer = new IntersectionObserver(observerCallback, observerOptions);
-
-        sectionsToFade.forEach(section => {
-            observer.observe(section);
-        });
-
-        // Helper function to format currency
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'USD'
-            }).format(amount);
-        }
-
-        // Helper function to calculate days remaining
-        function getDaysRemaining(endDate) {
-            const end = new Date(endDate);
-            const now = new Date();
-            const diff = end - now;
-            return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
-        }
-
-        // Function to load and display campaigns
-        async function loadCampaigns() {
-            try {
-                const campaignsGrid = document.getElementById('campaignsGrid');
-                
-                // Get campaigns from Supabase
-                const { data: campaigns, error } = await supabaseClient
-                    .from('campaigns')
-                    .select('*')
-                    .eq('status', 'active')
-                    .order('created_at', { ascending: false })
-                    .limit(3);
-
-                if (error) throw error;
-
-                // Clear loading message
-                campaignsGrid.innerHTML = '';
-
-                // Display campaigns
-                campaigns.forEach(campaign => {
-                    const isDirectPublish = campaign.is_direct_publish;
-                    
-                    const campaignCard = document.createElement('div');
-                    campaignCard.className = 'bg-white rounded-lg shadow-md overflow-hidden transform hover:scale-105 transition-transform duration-300';
-                    
-                    // Different display for direct publishing vs campaign
-                    const statusBadge = isDirectPublish ? 
-                        `<span class="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold">Available Now</span>` :
-                        `<span class="absolute top-4 right-4 bg-[#FF5733] text-white px-3 py-1 rounded-full text-xs font-semibold">Crowdfunding</span>`;
-
-                    const progressSection = isDirectPublish ?
-                        `<div class="flex justify-between items-center mb-3">
-                            <span class="text-sm text-gray-600">Print on demand</span>
-                            <span class="text-sm text-green-500 font-semibold">Ships in 3-5 days</span>
-                         </div>` :
-                        `<div>
-                            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-2">
-                                <div class="progress-bar-fill h-2.5 rounded-full" style="width: ${((campaign.current_purchases || 0) / campaign.min_purchases * 100)}%"></div>
-                            </div>
-                            <div class="flex justify-between text-xs text-gray-500 mb-3">
-                                <span>${campaign.current_purchases || 0}/${campaign.min_purchases} pre-purchases</span>
-                                <span>${getDaysRemaining(new Date(campaign.created_at).setDate(new Date(campaign.created_at).getDate() + campaign.duration_days))} days left</span>
-                            </div>
-                         </div>`;
-
-                    campaignCard.innerHTML = `
-                        <div class="relative">
-                            <img src="${campaign.cover_image_url || 'https://picsum.photos/300/400'}" 
-                                 alt="${campaign.title}" 
-                                 class="w-full h-48 object-cover">
-                            ${statusBadge}
-                        </div>
-                        <div class="p-4">
-                            <h3 class="font-semibold text-lg mb-1 text-[#333]">${campaign.title}</h3>
-                            <p class="text-sm text-gray-600 mb-2">by ${campaign.author_name}</p>
-                            <p class="text-sm text-gray-700 mb-3">${campaign.description.substring(0, 100)}${campaign.description.length > 100 ? '...' : ''}</p>
-                            ${progressSection}
-                            <a href="campaign.html?id=${campaign.id}" 
-                               class="cta-button block text-center w-full py-2 rounded-md font-semibold text-sm">
-                               ${isDirectPublish ? 'Buy Now' : 'Back this Book'} for ${formatCurrency(campaign.price)}
-                            </a>
-                        </div>
-                    `;
-                    campaignsGrid.appendChild(campaignCard);
+            if (profileDropdownButton) {
+                profileDropdownButton.addEventListener('click', () => {
+                    profileDropdownMenu.classList.toggle('hidden');
                 });
-
-                // If no campaigns found
-                if (!campaigns.length) {
-                    campaignsGrid.innerHTML = `
-                        <div class="col-span-3 text-center text-gray-500">
-                            No books found.
-                        </div>
-                    `;
-                }
-            } catch (error) {
-                console.error('Error loading campaigns:', error);
-                document.getElementById('campaignsGrid').innerHTML = `
-                    <div class="col-span-3 text-center text-red-500">
-                        Error loading campaigns. Please try again later.
-                    </div>
-                `;
             }
-        }
 
-        // Load campaigns when the page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            checkAuth();
+            // Close dropdown when clicking outside
+            window.addEventListener('click', (event) => {
+                if (profileDropdownButton && !profileDropdownButton.contains(event.target)) {
+                    profileDropdownMenu.classList.add('hidden');
+                }
+            });
+
+            // Load campaigns
             loadCampaigns();
         });
+
+        // Rest of your existing JavaScript code...
     </script>
 </body>
 </html>
